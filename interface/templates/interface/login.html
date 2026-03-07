@@ -1,0 +1,232 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'interface/css/main.css' %}">
+    <title>NET-1 // LOGIN</title>
+    <style>
+        /* ============================================
+           GLOBAL COLOUR PALETTE
+           Change these variables to restyle everything
+           ============================================ */
+        :root {
+            --bg-primary:       #080002;
+            --bg-secondary:     #100005;
+            --accent-primary:   #dc143c;
+            --accent-secondary: #00e5ff;
+            --accent-faint:     #003540;
+            --text-primary:     #dc143c;
+            --text-secondary:   #00e5ff;
+            --text-placeholder: #003540;
+        }
+
+        /* ============================================
+           BASE
+           ============================================ */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            background-image:
+                linear-gradient(rgba(0, 229, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.05) 1px, transparent 1px);
+            background-size: 80px 80px;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ============================================
+           LOGIN BOX
+           ============================================ */
+        .login-box {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--accent-secondary);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2),
+                        0 0 60px rgba(0, 229, 255, 0.05),
+                        inset 0 0 20px rgba(0, 229, 255, 0.02);
+            padding: 2.5rem;
+            position: relative;
+        }
+
+        /* corner decorators */
+        .corner-tl {
+            position: absolute;
+            top: -5px; left: -5px;
+            width: 14px; height: 14px;
+            border-top: 2px solid var(--accent-secondary);
+            border-left: 2px solid var(--accent-secondary);
+        }
+        .corner-tr {
+            position: absolute;
+            top: -5px; right: -5px;
+            width: 14px; height: 14px;
+            border-top: 2px solid var(--accent-secondary);
+            border-right: 2px solid var(--accent-secondary);
+        }
+        .corner-bl {
+            position: absolute;
+            bottom: -5px; left: -5px;
+            width: 14px; height: 14px;
+            border-bottom: 2px solid var(--accent-secondary);
+            border-left: 2px solid var(--accent-secondary);
+        }
+        .corner-br {
+            position: absolute;
+            bottom: -5px; right: -5px;
+            width: 14px; height: 14px;
+            border-bottom: 2px solid var(--accent-secondary);
+            border-right: 2px solid var(--accent-secondary);
+        }
+
+        /* ============================================
+           TITLE
+           ============================================ */
+        .title {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .title h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 0.5rem;
+            color: var(--text-primary);
+            text-shadow: 0 0 10px var(--accent-primary),
+                         0 0 30px rgba(220, 20, 60, 0.3);
+        }
+
+        .title p {
+            font-size: 0.65rem;
+            letter-spacing: 0.3rem;
+            color: var(--text-secondary);
+            margin-top: 0.4rem;
+            text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--accent-faint);
+            margin-top: 1.5rem;
+        }
+
+        /* ============================================
+           FORM
+           ============================================ */
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.65rem;
+            letter-spacing: 0.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+        }
+
+        .form-group input {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--accent-faint);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            padding: 0.6rem 0.8rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-placeholder);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-secondary);
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+        }
+
+        /* ============================================
+           BUTTON
+           ============================================ */
+        .btn-auth {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--accent-primary);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.3rem;
+            padding: 0.7rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            box-shadow: 0 0 8px rgba(220, 20, 60, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-auth:hover {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            box-shadow: 0 0 20px rgba(220, 20, 60, 0.6),
+                        0 0 40px rgba(220, 20, 60, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+
+        <!-- corner decorators -->
+        <div class="corner-tl"></div>
+        <div class="corner-tr"></div>
+        <div class="corner-bl"></div>
+        <div class="corner-br"></div>
+
+        <!-- title -->
+        <div class="title">
+            <h1>NET-1</h1>
+            <p>SYSTEM ACCESS TERMINAL</p>
+            <hr class="divider">
+        </div>
+
+        <!-- form -->
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>> USER_ID</label>
+                <input type="text" name="username" placeholder="username_" />
+            </div>
+
+            <div class="form-group">
+                <label>> PASSWD</label>
+                <input type="password" name="password" placeholder="password_" />
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="error-msg">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <button class="btn-auth" type="submit">[ AUTHENTICATE ]</button>
+
+        </form>
+
+    </div>
+
+</body>
+</html>

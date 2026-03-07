@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="output.css">
+    <title>NET-1 // DASHBOARD</title>
+    <style>
+        :root {
+            --bg-primary:       #080002;
+            --bg-secondary:     #100005;
+            --accent-primary:   #dc143c;
+            --accent-secondary: #00e5ff;
+            --accent-faint:     #003540;
+            --text-primary:     #dc143c;
+            --text-secondary:   #00e5ff;
+            --text-placeholder: #003540;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .navbar,
+        .main {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ============================================
+           NAVBAR
+           ============================================ */
+        .navbar {
+            width: 100%;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--accent-primary);
+            box-shadow: 0 0 15px rgba(220, 20, 60, 0.15);
+            padding: 0 1.5rem;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-logo {
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 0.4rem;
+            color: var(--text-primary);
+            text-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .user-info {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+        }
+
+        .user-info span {
+            color: var(--text-primary);
+            text-shadow: 0 0 8px var(--accent-primary);
+        }
+
+        .btn-settings {
+            background: transparent;
+            border: 1px solid var(--accent-faint);
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-settings:hover {
+            border-color: var(--accent-secondary);
+            color: var(--accent-secondary);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--accent-primary);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.2rem;
+            padding: 0.3rem 0.8rem;
+            cursor: pointer;
+            box-shadow: 0 0 6px rgba(220, 20, 60, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .btn-logout:hover {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            box-shadow: 0 0 15px rgba(220, 20, 60, 0.5);
+        }
+
+        /* ============================================
+           MAIN
+           ============================================ */
+        .main {
+            flex: 1;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* ============================================
+           SEARCH BAR
+           ============================================ */
+        .search-bar {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--accent-faint);
+            background: var(--bg-secondary);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .search-bar:focus-within {
+            border-color: var(--accent-secondary);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+
+        .search-bar span {
+            padding: 0 1rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .search-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            padding: 0.7rem 0;
+            outline: none;
+        }
+
+        .search-bar input::placeholder {
+            color: var(--text-placeholder);
+        }
+
+        .search-bar button {
+            background: transparent;
+            border: none;
+            border-left: 1px solid var(--accent-faint);
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.2rem;
+            padding: 0.7rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .search-bar button:hover {
+            background: var(--accent-secondary);
+            color: var(--bg-primary);
+        }
+
+        /* ============================================
+           STATUS PANELS
+           ============================================ */
+        .panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 640px) {
+            .panels { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-faint);
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px;
+            width: 10px; height: 10px;
+            border-top: 1px solid var(--accent-secondary);
+            border-left: 1px solid var(--accent-secondary);
+        }
+
+        .panel::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; right: -1px;
+            width: 10px; height: 10px;
+            border-bottom: 1px solid var(--accent-secondary);
+            border-right: 1px solid var(--accent-secondary);
+        }
+
+        .panel-header {
+            font-size: 0.65rem;
+            letter-spacing: 0.3rem;
+            color: var(--text-secondary);
+            text-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid var(--accent-faint);
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0, 53, 64, 0.5);
+            font-size: 0.75rem;
+        }
+
+        .status-row:last-child { border-bottom: none; }
+
+        .status-label {
+            color: var(--text-secondary);
+            letter-spacing: 0.1rem;
+        }
+
+        .status-online {
+            color: #00ff41;
+            text-shadow: 0 0 6px rgba(0, 255, 65, 0.5);
+        }
+
+        .status-offline {
+            color: var(--accent-primary);
+            text-shadow: 0 0 6px rgba(220, 20, 60, 0.5);
+        }
+
+        .sync-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0, 53, 64, 0.5);
+        }
+
+        .sync-row:last-child { border-bottom: none; }
+        .sync-label { color: var(--text-secondary); letter-spacing: 0.1rem; }
+        .sync-value { color: var(--text-primary); }
+
+        .progress-bar {
+            width: 100%;
+            height: 3px;
+            background: var(--accent-faint);
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 72%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            box-shadow: 0 0 8px rgba(220, 20, 60, 0.4);
+        }
+
+        .progress-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin-top: 0.4rem;
+            text-align: right;
+        }
+
+        /* ============================================
+           CAROUSEL
+           ============================================ */
+        .carousel-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .carousel-header {
+            font-size: 0.65rem;
+            letter-spacing: 0.3rem;
+            color: var(--text-secondary);
+            text-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+        }
+
+        .carousel {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 220px;
+            overflow: hidden;
+        }
+
+        .carousel-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: 1px solid var(--accent-primary);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            width: 28px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.2s ease, background 0.2s ease;
+        }
+
+        .carousel-arrow.left { left: 0; }
+        .carousel-arrow.right { right: 0; }
+        .carousel:hover .carousel-arrow { opacity: 1; }
+
+        .carousel-arrow:hover {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        .carousel-track {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .c-card {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.7rem;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            border: 1px solid var(--accent-faint);
+            background: var(--bg-secondary);
+        }
+
+        .c-card.pos-center {
+            width: 200px;
+            height: 200px;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 25px rgba(220, 20, 60, 0.3),
+                        inset 0 0 20px rgba(220, 20, 60, 0.03);
+            opacity: 1;
+            z-index: 3;
+            transform: translateX(0) scale(1);
+        }
+
+        .c-card.pos-center:hover {
+            transform: translateX(0) scale(1.06);
+            box-shadow: 0 0 40px rgba(220, 20, 60, 0.5),
+                        0 0 80px rgba(220, 20, 60, 0.15),
+                        inset 0 0 30px rgba(220, 20, 60, 0.06);
+            border-color: var(--accent-secondary);
+        }
+
+        .c-card.pos-center:hover .c-card-title {
+            text-shadow: 0 0 15px var(--accent-primary),
+                         0 0 30px rgba(220, 20, 60, 0.5);
+        }
+
+        .c-card.pos-center:hover .c-card-enter {
+            text-shadow: 0 0 8px var(--accent-primary);
+        }
+
+        .c-card.pos-center:hover::before {
+            border-color: var(--accent-primary);
+        }
+
+        .c-card.pos-center:hover::after {
+            border-color: var(--accent-primary);
+        }
+
+        .c-card.pos-left {
+            width: 160px;
+            height: 160px;
+            opacity: 0.4;
+            z-index: 2;
+            transform: translateX(-210px) scale(0.88);
+            border-color: var(--accent-faint);
+        }
+
+        .c-card.pos-right {
+            width: 160px;
+            height: 160px;
+            opacity: 0.4;
+            z-index: 2;
+            transform: translateX(210px) scale(0.88);
+            border-color: var(--accent-faint);
+        }
+
+        .c-card.pos-far-left {
+            opacity: 0;
+            z-index: 1;
+            transform: translateX(-340px) scale(0.75);
+            pointer-events: none;
+        }
+
+        .c-card.pos-far-right {
+            opacity: 0;
+            z-index: 1;
+            transform: translateX(340px) scale(0.75);
+            pointer-events: none;
+        }
+
+        .c-card.pos-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(0) scale(0.5);
+        }
+
+        .c-card-tag {
+            font-size: 0.55rem;
+            letter-spacing: 0.2rem;
+            color: var(--accent-faint);
+            border: 1px solid var(--accent-faint);
+            padding: 0.1rem 0.4rem;
+        }
+
+        .c-card.pos-center .c-card-tag {
+            color: var(--accent-secondary);
+            border-color: var(--accent-secondary);
+        }
+
+        .c-card-title {
+            font-size: 0.9rem;
+            letter-spacing: 0.4rem;
+            color: var(--text-secondary);
+            font-weight: bold;
+            transition: text-shadow 0.2s ease;
+        }
+
+        .c-card.pos-center .c-card-title {
+            color: var(--text-primary);
+            text-shadow: 0 0 10px var(--accent-primary);
+            font-size: 1rem;
+        }
+
+        .c-card-desc {
+            font-size: 0.58rem;
+            letter-spacing: 0.05rem;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 0 1rem;
+            line-height: 1.5;
+            opacity: 0.6;
+        }
+
+        .c-card.pos-center .c-card-desc { opacity: 1; }
+
+        .c-card-enter {
+            font-size: 0.6rem;
+            color: var(--accent-faint);
+            letter-spacing: 0.15rem;
+            transition: all 0.2s ease;
+        }
+
+        .c-card.pos-center .c-card-enter { color: var(--text-primary); }
+
+        .c-card.pos-center::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px;
+            width: 10px; height: 10px;
+            border-top: 1px solid var(--accent-secondary);
+            border-left: 1px solid var(--accent-secondary);
+            transition: border-color 0.2s ease;
+        }
+
+        .c-card.pos-center::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; right: -1px;
+            width: 10px; height: 10px;
+            border-bottom: 1px solid var(--accent-secondary);
+            border-right: 1px solid var(--accent-secondary);
+            transition: border-color 0.2s ease;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border: 1px solid var(--accent-faint);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dot.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 6px rgba(220, 20, 60, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- navbar -->
+    <nav class="navbar">
+        <span class="navbar-logo">NET-1</span>
+        <div class="navbar-right">
+            <div class="user-info">> USER: <span>NET1ADMIN</span></div>
+            <button class="btn-settings" title="Settings">⚙</button>
+            <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button class="btn-logout" type="submit">[ LOGOUT ]</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="main">
+
+        <!-- search -->
+        <div class="search-bar">
+            <span>></span>
+            <input type="text" placeholder="search wikipedia pages..." />
+            <button>[ SEARCH ]</button>
+        </div>
+
+        <!-- status panels -->
+        <div class="panels">
+            <div class="panel">
+                <div class="panel-header">// SYSTEM STATUS</div>
+                <div class="status-row">
+                    <span class="status-label">POSTGRESQL</span>
+                    <span class="status-online">● ONLINE</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">VALKEY</span>
+                    <span class="status-online">● ONLINE</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">CELERY</span>
+                    <span class="status-offline">● OFFLINE</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">DJANGO</span>
+                    <span class="status-online">● ONLINE</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">// WIKI SYNC STATUS</div>
+                <div class="sync-row">
+                    <span class="sync-label">LAST SYNC</span>
+                    <span class="sync-value">2026.03.07 // 06:00</span>
+                </div>
+                <div class="sync-row">
+                    <span class="sync-label">NEXT SYNC</span>
+                    <span class="sync-value">2026.03.14 // 06:00</span>
+                </div>
+                <div class="sync-row">
+                    <span class="sync-label">TOTAL PAGES</span>
+                    <span class="sync-value">6,748,201</span>
+                </div>
+                <div class="sync-row">
+                    <span class="sync-label">UPDATED PAGES</span>
+                    <span class="sync-value">12,447</span>
+                </div>
+                <div class="sync-row">
+                    <span class="sync-label">SYNC SIZE</span>
+                    <span class="sync-value">142 MB</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="progress-label">STORAGE: 72% USED</div>
+            </div>
+        </div>
+
+        <!-- carousel -->
+        <div class="carousel-section">
+            <div class="carousel-header">// NAVIGATE</div>
+
+            <div class="carousel">
+                <button class="carousel-arrow left" id="arrowLeft">&lt;</button>
+
+                <div class="carousel-track">
+                    <div class="c-card" data-index="0">
+                        <div class="c-card-tag">01</div>
+                        <div class="c-card-title">WIKI</div>
+                        <div class="c-card-desc">Browse & search wikipedia pages</div>
+                        <div class="c-card-enter">> ENTER</div>
+                    </div>
+                    <div class="c-card" data-index="1">
+                        <div class="c-card-tag">02</div>
+                        <div class="c-card-title">TIMELINE</div>
+                        <div class="c-card-desc">View page change history</div>
+                        <div class="c-card-enter">> ENTER</div>
+                    </div>
+                    <div class="c-card" data-index="2">
+                        <div class="c-card-tag">03</div>
+                        <div class="c-card-title">SEARCH</div>
+                        <div class="c-card-desc">Advanced search & filters</div>
+                        <div class="c-card-enter">> ENTER</div>
+                    </div>
+                    <div class="c-card" data-index="3">
+                        <div class="c-card-tag">04</div>
+                        <div class="c-card-title">SYSTEM</div>
+                        <div class="c-card-desc">Monitor system health</div>
+                        <div class="c-card-enter">> ENTER</div>
+                    </div>
+                    <div class="c-card" data-index="4">
+                        <div class="c-card-tag">05</div>
+                        <div class="c-card-title">SETTINGS</div>
+                        <div class="c-card-desc">Configure preferences</div>
+                        <div class="c-card-enter">> ENTER</div>
+                    </div>
+                </div>
+
+                <button class="carousel-arrow right" id="arrowRight">&gt;</button>
+            </div>
+
+            <div class="carousel-dots" id="dots"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const cards = document.querySelectorAll('.c-card');
+        const dotsContainer = document.getElementById('dots');
+        const total = cards.length;
+        let current = 0;
+
+        cards.forEach((_, i) => {
+            const dot = document.createElement('div');
+            dot.classList.add('dot');
+            if (i === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => goTo(i));
+            dotsContainer.appendChild(dot);
+        });
+
+        function getPosition(index) {
+            const diff = (index - current + total) % total;
+            if (diff === 0) return 'pos-center';
+            if (diff === 1) return 'pos-right';
+            if (diff === total - 1) return 'pos-left';
+            if (diff === 2) return 'pos-far-right';
+            if (diff === total - 2) return 'pos-far-left';
+            return 'pos-hidden';
+        }
+
+        function updateCarousel() {
+            cards.forEach((card, i) => {
+                card.className = 'c-card ' + getPosition(i);
+            });
+            document.querySelectorAll('.dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === current);
+            });
+        }
+
+        function goTo(index) {
+            current = (index + total) % total;
+            updateCarousel();
+        }
+
+        document.getElementById('arrowLeft').addEventListener('click', () => goTo(current - 1));
+        document.getElementById('arrowRight').addEventListener('click', () => goTo(current + 1));
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') goTo(current - 1);
+            if (e.key === 'ArrowRight') goTo(current + 1);
+        });
+
+        updateCarousel();
+    </script>
+
+</body>
+</html>
