@@ -34,6 +34,16 @@ def test_postgres():
     version = cursor.fetchone()[0]
     result("PostgreSQL", True, version)
 
+def test_ollama():
+    """Test Ollama connection."""
+    try:
+        import ollama
+        client = ollama.Client(host='http://localhost:11434')
+        models = client.list()
+        print(f"✅ Ollama connected — models: {[m.model for m in models.models]}")
+    except Exception as e:
+        print(f"❌ Ollama failed: {e}")
+
 def test_valkey():
     from django.core.cache import cache
     cache.set('test_key', 'Valkey working net-1', 30)
@@ -48,6 +58,7 @@ def test_conn(target="all"):
     targets = {
         "postgres": test_postgres,
         "valkey": test_valkey,
+        "ollama": test_ollama,
     }
     if target == "all":
         for fn in targets.values():
@@ -84,6 +95,7 @@ def show_help():
     print("  python debugger.py test_conn all")
     print("  python debugger.py test_conn postgres")
     print("  python debugger.py test_conn valkey")
+    print("  python debugger.py test_conn ollama")
     print("=" * 50)
 
 if __name__ == "__main__":
