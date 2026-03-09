@@ -25,6 +25,7 @@ plotly==6.6.0
 polars==1.38.1
 polars-runtime-32==1.38.1
 prompt_toolkit==3.0.52
+psutil==7.2.2
 psycopg2-binary==2.9.11
 pydantic==2.12.5
 pydantic_core==2.41.5
