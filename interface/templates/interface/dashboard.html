@@ -1068,7 +1068,7 @@
 
             const thinkingId = addThinking();
 
-            fetch('/wiki/prompt/', {
+            fetch('/data-master/prompt/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1157,7 +1157,7 @@
             modalBody.textContent  = 'LOADING...';
             modalOverlay.classList.add('active');
 
-            fetch(`/wiki/article/${slug}/json/`)
+            fetch(`/data-master/article/${slug}/json/`)
                 .then(r => r.json())
                 .then(data => {
                     modalBody.innerHTML = `
