@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="{% static 'interface/css/main.css' %}">
     <title>NET-1 // DASHBOARD</title>
     <style>
+        .modal-meta {
+            font-size: 0.6rem;
+            color: var(--accent-secondary);
+            letter-spacing: 0.15rem;
+            margin-bottom: 0.3rem;
+        }       
+
         :root {
             --bg-primary:       #080002;
             --bg-secondary:     #100005;
@@ -161,7 +168,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 420px;
+            height: 320px;
             overflow: hidden;
         }
 
@@ -685,6 +692,207 @@
         }
 
         /* ============================================
+           ARTICLE MODAL — Kindle paper theme
+           ============================================ */
+        #articleModalOverlay {
+            background: rgba(0, 0, 0, 0.75);
+        }
+
+        #articleModalOverlay .modal {
+            border-color: #c8b89a;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+            max-width: 720px;
+            max-height: 88vh;
+            background: #f5f0e8;
+        }
+
+        #articleModalOverlay .modal::before,
+        #articleModalOverlay .modal::after { display: none; }
+
+        /* reading progress bar */
+        .article-progress-bar {
+            height: 3px;
+            background: #e0d5c0;
+            flex-shrink: 0;
+        }
+
+        .article-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #8b6914;
+            transition: width 0.1s ease;
+        }
+
+        /* article header */
+        #articleModalOverlay .modal-header {
+            background: #ede8dd;
+            border-bottom: 1px solid #c8b89a;
+            padding: 0.9rem 1.4rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.6rem;
+        }
+
+        .article-header-top {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #articleModalOverlay .modal-title {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 1.1rem;
+            letter-spacing: 0;
+            color: #2c1810;
+            text-shadow: none;
+            font-weight: bold;
+            line-height: 1.3;
+        }
+
+        .article-header-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .article-badge {
+            font-family: 'Courier New', monospace;
+            font-size: 0.55rem;
+            letter-spacing: 0.15rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 2px;
+            text-transform: uppercase;
+        }
+
+        .article-badge.wiki {
+            background: #dceeff;
+            color: #1a4a7a;
+            border: 1px solid #a8c8ee;
+        }
+
+        .article-badge.gutenberg {
+            background: #e8f4e8;
+            color: #1a5c1a;
+            border: 1px solid #a8d4a8;
+        }
+
+        .article-author {
+            font-family: Georgia, serif;
+            font-size: 0.75rem;
+            color: #6b5a3e;
+            font-style: italic;
+        }
+
+        .article-read-time {
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            color: #9c8a6e;
+            margin-left: auto;
+        }
+
+        /* close button — matches paper theme */
+        #articleModalOverlay .modal-close {
+            background: transparent;
+            border: 1px solid #c8b89a;
+            color: #6b5a3e;
+            font-size: 0.8rem;
+            width: 30px;
+            height: 30px;
+            flex-shrink: 0;
+        }
+
+        #articleModalOverlay .modal-close:hover {
+            background: #c8b89a;
+            color: #2c1810;
+            border-color: #8b6914;
+        }
+
+        /* theme toggle button */
+        .article-theme-toggle {
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.1rem;
+            padding: 0.2rem 0.6rem;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .article-theme-toggle.light {
+            background: #2c1810;
+            color: #f5f0e8;
+            border: 1px solid #2c1810;
+        }
+
+        .article-theme-toggle.dark {
+            background: #f5f0e8;
+            color: #2c1810;
+            border: 1px solid #c8b89a;
+        }
+
+        /* article body — paper mode (default) */
+        #articleModalBody {
+            background: #f5f0e8;
+            color: #2c1810;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 1rem;
+            line-height: 1.9;
+            padding: 2rem 3rem;
+            scrollbar-width: thin;
+            scrollbar-color: #c8b89a transparent;
+        }
+
+        #articleModalBody::-webkit-scrollbar       { width: 5px; }
+        #articleModalBody::-webkit-scrollbar-track { background: #ede8dd; }
+        #articleModalBody::-webkit-scrollbar-thumb { background: #c8b89a; border-radius: 2px; }
+
+        /* dark mode — sepia night */
+        #articleModalOverlay.dark-mode .modal  { background: #1a1208; border-color: #4a3820; }
+        #articleModalOverlay.dark-mode .modal-header { background: #231a0e; border-color: #4a3820; }
+        #articleModalOverlay.dark-mode .modal-title  { color: #e8d5b0; }
+        #articleModalOverlay.dark-mode .article-author { color: #a89060; }
+        #articleModalOverlay.dark-mode .article-read-time { color: #7a6040; }
+        #articleModalOverlay.dark-mode .modal-close  { border-color: #4a3820; color: #a89060; }
+        #articleModalOverlay.dark-mode .modal-close:hover { background: #4a3820; color: #e8d5b0; }
+        #articleModalOverlay.dark-mode .article-progress-bar { background: #2a1e10; }
+        #articleModalOverlay.dark-mode .article-progress-fill { background: #c8962a; }
+        #articleModalOverlay.dark-mode #articleModalBody {
+            background: #1a1208;
+            color: #e8d5b0;
+            scrollbar-color: #4a3820 transparent;
+        }
+        #articleModalOverlay.dark-mode #articleModalBody::-webkit-scrollbar-track { background: #231a0e; }
+        #articleModalOverlay.dark-mode #articleModalBody::-webkit-scrollbar-thumb { background: #4a3820; }
+
+        /* article text formatting */
+        .article-text-content p {
+            margin-bottom: 1.2em;
+            text-indent: 1.5em;
+        }
+
+        .article-text-content p:first-child {
+            text-indent: 0;
+        }
+
+        .article-categories {
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            color: #9c8a6e;
+            letter-spacing: 0.08rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #c8b89a;
+        }
+
+        #articleModalOverlay.dark-mode .article-categories {
+            color: #7a6040;
+            border-color: #4a3820;
+        }
+
+        /* ============================================
            CODE MODAL — amber theme
            ============================================ */
         #codeModal .modal {
@@ -850,8 +1058,6 @@
                     </div>
                     <div class="progress-label" id="stat-cpu-label">CPU: --%</div>
                 </div>
-
-                
             </div>
         </div>
 
@@ -878,12 +1084,21 @@
 
     </div>
 
-    <!-- article modal -->
+    <!-- article modal — Kindle paper theme -->
     <div class="modal-overlay" id="articleModalOverlay">
         <div class="modal">
             <div class="modal-header">
-                <span class="modal-title" id="articleModalTitle"></span>
-                <button class="modal-close" id="articleModalClose">✕</button>
+                <div class="article-header-top">
+                    <span class="modal-title" id="articleModalTitle"></span>
+                    <div style="display:flex;gap:0.5rem;align-items:center;flex-shrink:0;margin-left:1rem;">
+                        <button class="article-theme-toggle light" id="articleThemeToggle">☾ DARK</button>
+                        <button class="modal-close" id="articleModalClose">✕</button>
+                    </div>
+                </div>
+                <div class="article-header-meta" id="articleHeaderMeta"></div>
+            </div>
+            <div class="article-progress-bar">
+                <div class="article-progress-fill" id="articleProgressFill"></div>
             </div>
             <div class="modal-body" id="articleModalBody"></div>
         </div>
@@ -945,7 +1160,7 @@
         updateCarousel();
     </script>
 
-    <!-- prompt + conversation + history + code modal script -->
+    <!-- prompt + conversation + history + modals script -->
     <script>
         const promptInput  = document.getElementById('promptInput');
         const promptSubmit = document.getElementById('promptSubmit');
@@ -957,7 +1172,7 @@
         //  Clears when tab is closed
         // ══════════════════════════════════════════
         const HISTORY_KEY = 'net1_chat_history';
-        const MAX_HISTORY = 30; // max messages to store
+        const MAX_HISTORY = 30;
 
         function loadHistory() {
             try {
@@ -966,14 +1181,13 @@
         }
 
         function saveHistory(history) {
-            // keep only last MAX_HISTORY messages
             const trimmed = history.slice(-MAX_HISTORY);
             sessionStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
         }
 
-        function addToHistory(role, text, articleTitle, articleSlug, codeBlocks) {
+        function addToHistory(role, text, sources, codeBlocks) {
             const history = loadHistory();
-            history.push({ role, text, articleTitle, articleSlug, codeBlocks, ts: Date.now() });
+            history.push({ role, text, sources: sources || [], codeBlocks, ts: Date.now() });
             saveHistory(history);
         }
 
@@ -988,7 +1202,9 @@
                 if (entry.role === 'user') {
                     renderUserMessage(entry.text);
                 } else {
-                    renderNet1Message(entry.text, entry.articleTitle, entry.articleSlug, entry.codeBlocks);
+                    // support old history format (article_title/articleTitle string) gracefully
+                    const sources = Array.isArray(entry.sources) ? entry.sources : [];
+                    renderNet1Message(entry.text, sources, entry.codeBlocks);
                 }
             });
         }
@@ -1021,7 +1237,7 @@
             if (emptyState) emptyState.remove();
 
             renderUserMessage(query);
-            addToHistory('user', query, null, null, null);
+            addToHistory('user', query, [], null);
 
             promptInput.value = '';
             promptInput.style.height = 'auto';
@@ -1040,15 +1256,16 @@
             .then(r => r.json())
             .then(data => {
                 removeThinking(thinkingId);
-                const codeBlocks = extractCodeBlocks(data.answer);
+                const codeBlocks  = extractCodeBlocks(data.answer);
                 const cleanAnswer = stripCodeBlocks(data.answer);
-                renderNet1Message(cleanAnswer, data.article_title, data.article_slug, codeBlocks);
-                addToHistory('net1', cleanAnswer, data.article_title, data.article_slug, codeBlocks);
+                const sources     = data.sources || [];
+                renderNet1Message(cleanAnswer, sources, codeBlocks);
+                addToHistory('net1', cleanAnswer, sources, codeBlocks);
                 promptSubmit.disabled = false;
             })
             .catch(() => {
                 removeThinking(thinkingId);
-                renderNet1Message('ERROR: Could not connect to LLM.', null, null, null);
+                renderNet1Message('ERROR: Could not connect to LLM.', [], null);
                 promptSubmit.disabled = false;
             });
         }
@@ -1067,11 +1284,11 @@
             scrollToBottom();
         }
 
-        // in-memory store for code blocks — avoids passing JSON through onclick attributes
+        // in-memory store for code blocks
         const codeStore = {};
         let codeStoreIndex = 0;
 
-        function renderNet1Message(answer, articleTitle, articleSlug, codeBlocks) {
+        function renderNet1Message(answer, sources, codeBlocks) {
             const div = document.createElement('div');
             div.classList.add('msg-net1');
 
@@ -1080,36 +1297,43 @@
                 <div class="msg-net1-text">${escapeHtml(answer)}</div>
             `;
 
-            // build sources row using real event listeners — no inline JSON
-            const sources = [];
+            const refItems = [];
 
-            if (articleTitle && articleSlug) {
-                const btn = document.createElement('button');
-                btn.className = 'msg-source-link';
-                btn.textContent = '📄 ' + articleTitle;
-                btn.addEventListener('click', () => openArticleModal(articleSlug, articleTitle));
-                sources.push(btn);
+            // source document links — wiki and books
+            if (sources && sources.length > 0) {
+                sources.forEach(source => {
+                    const icon  = source.source_type === 'gutenberg' ? '📖' : '📄';
+                    const label = source.author
+                        ? `${icon} ${source.title} — ${source.author}`
+                        : `${icon} ${source.title}`;
+                    const btn = document.createElement('button');
+                    btn.className   = 'msg-source-link';
+                    btn.textContent = label;
+                    btn.addEventListener('click', () => openArticleModal(source.slug, source.title));
+                    refItems.push(btn);
+                });
             }
 
+            // code block link
             if (codeBlocks && codeBlocks.length > 0) {
-                const key = 'code_' + (codeStoreIndex++);
+                const key   = 'code_' + (codeStoreIndex++);
                 codeStore[key] = codeBlocks;
                 const label = codeBlocks.length === 1 ? 'VIEW CODE' : `VIEW CODE (${codeBlocks.length})`;
-                const btn = document.createElement('button');
+                const btn   = document.createElement('button');
                 btn.className = 'msg-code-link';
                 btn.innerHTML = `&lt;/&gt; ${label}`;
                 btn.addEventListener('click', () => openCodeModal(codeStore[key]));
-                sources.push(btn);
+                refItems.push(btn);
             }
 
-            if (sources.length > 0) {
-                const row = document.createElement('div');
+            if (refItems.length > 0) {
+                const row   = document.createElement('div');
                 row.className = 'msg-source';
                 const label = document.createElement('span');
-                label.className = 'msg-source-label';
+                label.className   = 'msg-source-label';
                 label.textContent = '// REF';
                 row.appendChild(label);
-                sources.forEach(btn => row.appendChild(btn));
+                refItems.forEach(btn => row.appendChild(btn));
                 div.appendChild(row);
             }
 
@@ -1146,44 +1370,100 @@
         // ══════════════════════════════════════════
         function extractCodeBlocks(text) {
             const blocks = [];
-            // matches ```lang\ncode``` or ```\ncode```
-            const regex = /```([a-zA-Z0-9]*)\n?([\s\S]*?)```/g;
+            const regex  = /```([a-zA-Z0-9]*)\n?([\s\S]*?)```/g;
             let match;
             while ((match = regex.exec(text)) !== null) {
-                blocks.push({
-                    lang: match[1] || 'code',
-                    code: match[2].trim(),
-                });
+                blocks.push({ lang: match[1] || 'code', code: match[2].trim() });
             }
             return blocks;
         }
 
         function stripCodeBlocks(text) {
-            // remove code fences, keep surrounding prose
             return text.replace(/```[a-zA-Z0-9]*\n?[\s\S]*?```/g, '').trim();
         }
 
         // ══════════════════════════════════════════
-        //  ARTICLE MODAL
+        //  ARTICLE MODAL — Kindle paper theme
         // ══════════════════════════════════════════
-        const articleOverlay = document.getElementById('articleModalOverlay');
-        const articleTitle   = document.getElementById('articleModalTitle');
-        const articleBody    = document.getElementById('articleModalBody');
+        const articleOverlay   = document.getElementById('articleModalOverlay');
+        const articleTitle     = document.getElementById('articleModalTitle');
+        const articleBody      = document.getElementById('articleModalBody');
+        const articleHeaderMeta= document.getElementById('articleHeaderMeta');
+        const articleProgress  = document.getElementById('articleProgressFill');
+        const articleThemeBtn  = document.getElementById('articleThemeToggle');
+
+        let articleDarkMode = false;
+
+        // reading progress bar
+        articleBody.addEventListener('scroll', () => {
+            const scrollable = articleBody.scrollHeight - articleBody.clientHeight;
+            const progress   = scrollable > 0 ? (articleBody.scrollTop / scrollable) * 100 : 100;
+            articleProgress.style.width = progress + '%';
+        });
+
+        // dark/light toggle
+        articleThemeBtn.addEventListener('click', () => {
+            articleDarkMode = !articleDarkMode;
+            articleOverlay.classList.toggle('dark-mode', articleDarkMode);
+            articleThemeBtn.textContent = articleDarkMode ? '☀ LIGHT' : '☾ DARK';
+            articleThemeBtn.className   = articleDarkMode
+                ? 'article-theme-toggle dark'
+                : 'article-theme-toggle light';
+        });
+
+        function formatArticleText(rawText) {
+            // split on double newlines → paragraphs, single newlines become spaces
+            const paragraphs = rawText.split(/\n{2,}/);
+            return paragraphs
+                .map(p => p.replace(/\n/g, ' ').trim())
+                .filter(p => p.length > 0)
+                .map(p => `<p>${escapeHtml(p)}</p>`)
+                .join('');
+        }
+
+        function estimateReadTime(text) {
+            const words = text.trim().split(/\s+/).length;
+            const mins  = Math.max(1, Math.round(words / 200));
+            return `~${mins} min read`;
+        }
 
         function openArticleModal(slug, title) {
-            articleTitle.textContent = title;
-            articleBody.textContent  = 'LOADING...';
+            articleTitle.textContent    = title;
+            articleHeaderMeta.innerHTML = '';
+            articleBody.innerHTML       = '<p style="color:#9c8a6e;font-style:italic;">Loading...</p>';
+            articleBody.scrollTop       = 0;
+            articleProgress.style.width = '0%';
             articleOverlay.classList.add('active');
 
             fetch(`/data-master/article/${slug}/json/`)
                 .then(r => r.json())
                 .then(data => {
+                    // build meta row
+                    const sourceType = (data.source_type || '').toLowerCase();
+                    const badgeClass = sourceType === 'gutenberg' ? 'gutenberg' : 'wiki';
+                    const badgeLabel = sourceType === 'gutenberg' ? '📖 GUTENBERG' : '📄 WIKIPEDIA';
+                    const readTime   = estimateReadTime(data.full_text || '');
+
+                    articleHeaderMeta.innerHTML = `
+                        <span class="article-badge ${badgeClass}">${badgeLabel}</span>
+                        ${data.author ? `<span class="article-author">by ${escapeHtml(data.author)}</span>` : ''}
+                        <span class="article-read-time">${readTime}</span>
+                    `;
+
+                    const categoriesLine = data.categories
+                        ? `<div class="article-categories">CATEGORIES: ${escapeHtml(data.categories)}</div>`
+                        : '';
+
                     articleBody.innerHTML = `
-                        <div style="white-space: pre-wrap;">${escapeHtml(data.full_text)}</div>
-                        ${data.categories ? `<div class="modal-categories">// CATEGORIES: ${escapeHtml(data.categories)}</div>` : ''}
+                        <div class="article-text-content">
+                            ${formatArticleText(data.full_text || '')}
+                        </div>
+                        ${categoriesLine}
                     `;
                 })
-                .catch(() => { articleBody.textContent = 'ERROR: Could not load article.'; });
+                .catch(() => {
+                    articleBody.innerHTML = '<p style="color:#c0392b;">ERROR: Could not load article.</p>';
+                });
         }
 
         document.getElementById('articleModalClose').addEventListener('click', () => {
@@ -1203,12 +1483,11 @@
 
         function openCodeModal(blocks) {
             codeTitle.textContent = '// CODE OUTPUT';
-            codeBody.innerHTML = '';
+            codeBody.innerHTML    = '';
 
             blocks.forEach((block, i) => {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('code-block-wrapper');
-
                 wrapper.innerHTML = `
                     <div class="code-lang-label">> ${block.lang.toUpperCase() || 'CODE'}</div>
                     <button class="code-copy-btn" onclick="copyCode(this, ${i})">[ COPY ]</button>
@@ -1236,7 +1515,7 @@
             if (e.target === codeOverlay) codeOverlay.classList.remove('active');
         });
 
-        // ── shared ESC to close any modal ──
+        // shared ESC to close any modal
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 articleOverlay.classList.remove('active');
@@ -1266,8 +1545,6 @@
                 .replace(/'/g, '&#039;');
         }
 
-        function escapeAttr(text) { return String(text).replace(/'/g, "\\'"); }
-
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -1283,43 +1560,38 @@
         }
 
         // ══════════════════════════════════════════
-        //  INIT — restore chat history on page load
+        //  INIT
         // ══════════════════════════════════════════
         restoreHistory();
+
         // ══════════════════════════════════════════
-//  SYSTEM STATUS POLLING — every 30 seconds
-// ══════════════════════════════════════════
+        //  SYSTEM STATUS POLLING — every 30 seconds
+        // ══════════════════════════════════════════
         function updateSystemStatus() {
             fetch('/system-logger/status/')
                 .then(r => r.json())
                 .then(data => {
-
-                    // NET-1 network
                     const net1El = document.getElementById('stat-net1');
                     if (data.net1_online) {
-                        net1El.textContent   = '● ONLINE';
-                        net1El.className     = 'status-online';
+                        net1El.textContent = '● ONLINE';
+                        net1El.className   = 'status-online';
                     } else {
-                        net1El.textContent   = '● OFFLINE';
-                        net1El.className     = 'status-offline';
+                        net1El.textContent = '● OFFLINE';
+                        net1El.className   = 'status-offline';
                     }
 
-                    // uptime
                     document.getElementById('stat-uptime').textContent = data.uptime;
 
-                    // CPU
                     const cpu = data.cpu.percent.toFixed(1);
                     document.getElementById('stat-cpu').textContent       = `${cpu}%`;
                     document.getElementById('stat-cpu-bar').style.width   = `${cpu}%`;
                     document.getElementById('stat-cpu-label').textContent = `CPU: ${cpu}%`;
 
-                    // RAM
                     const ram = data.ram;
                     document.getElementById('stat-ram').textContent       = `${ram.used_gb} / ${ram.total_gb} GB`;
                     document.getElementById('stat-ram-bar').style.width   = `${ram.percent}%`;
                     document.getElementById('stat-ram-label').textContent = `RAM: ${ram.percent.toFixed(1)}%`;
 
-                    // DISK
                     const disk = data.disk;
                     document.getElementById('stat-disk').textContent       = `${disk.used_gb} / ${disk.total_gb} GB`;
                     document.getElementById('stat-disk-bar').style.width   = `${disk.percent}%`;
@@ -1331,9 +1603,8 @@
                 });
         }
 
-                // run immediately on load then every 30 seconds
-                updateSystemStatus();
-                setInterval(updateSystemStatus, 30000);
+        updateSystemStatus();
+        setInterval(updateSystemStatus, 30000);
     </script>
 
 </body>

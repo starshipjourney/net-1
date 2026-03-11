@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from data_master.models import WikiPage
+from data_master.models import Document
 from data_master.llm import ask
 
 
@@ -37,33 +37,41 @@ def prompt_view(request):
 @login_required(login_url='login')
 def article_json(request, slug):
     try:
-        article = WikiPage.objects.get(slug=slug, is_active=True)
+        doc = Document.objects.get(slug=slug, is_active=True)
         return JsonResponse({
-            'title'     : article.title,
-            'slug'      : article.slug,
-            'summary'   : article.summary,
-            'full_text' : article.full_text,
-            'categories': article.categories,
+            'title'      : doc.title,
+            'slug'       : doc.slug,
+            'author'     : doc.author,
+            'source_type': doc.source_type,
+            'summary'    : doc.summary,
+            'full_text'  : doc.full_text,
+            'categories' : doc.categories,
         })
-    except WikiPage.DoesNotExist:
-        return JsonResponse({'error': 'Article not found'}, status=404)
+    except Document.DoesNotExist:
+        return JsonResponse({'error': 'Document not found'}, status=404)
 
 
 # ============================================================
-#  SEARCH VIEW — basic title search
+#  SEARCH VIEW — title search across all sources
 # ============================================================
 @require_GET
 @login_required(login_url='login')
 def search_view(request):
-    query    = request.GET.get('q', '').strip()
-    results  = []
+    query   = request.GET.get('q', '').strip()
+    source  = request.GET.get('source', '').strip()   # optional filter: wikipedia / gutenberg
+    results = []
 
     if query:
-        articles = WikiPage.objects.filter(
+        qs = Document.objects.filter(
             title__icontains=query,
             is_active=True
-        ).values('title', 'slug', 'summary')[:20]
-        results = list(articles)
+        )
+        if source:
+            qs = qs.filter(source_type=source)
+
+        results = list(
+            qs.values('title', 'slug', 'summary', 'source_type', 'author')[:20]
+        )
 
     return JsonResponse({'results': results})
 
@@ -75,9 +83,9 @@ def search_view(request):
 @login_required(login_url='login')
 def article_view(request, slug):
     try:
-        article = WikiPage.objects.get(slug=slug, is_active=True)
+        doc = Document.objects.get(slug=slug, is_active=True)
         from django.shortcuts import render
-        return render(request, 'data_master/article.html', {'article': article})
-    except WikiPage.DoesNotExist:
+        return render(request, 'data_master/article.html', {'article': doc})
+    except Document.DoesNotExist:
         from django.http import Http404
         raise Http404
