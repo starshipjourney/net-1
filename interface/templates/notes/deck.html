@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <title>NET-1 // NOTES</title>
+    <style>
+        /* theme variables — set by theme.js */
+        :root {
+            --n-bg:        var(--t-bg,        #0d1117);
+            --n-surface:   var(--t-surface,   #161b22);
+            --n-border:    var(--t-border,    #21262d);
+            --n-border-hi: var(--t-border-hi, #30363d);
+            --n-amber:     var(--t-accent,    #f59e0b);
+            --n-amber-dim: var(--t-accent-dim,#92400e);
+            --n-text:      var(--t-text,      #e6edf3);
+            --n-text-dim:  var(--t-text-dim,  #8b949e);
+            --n-text-mute: var(--t-text-mute, #30363d);
+            --n-green:     var(--t-green,     #3fb950);
+            --n-blue:      var(--t-blue,      #58a6ff);
+            --n-red:       var(--t-red,       #f85149);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--n-bg);
+            color: var(--n-text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            background: var(--n-surface);
+            border-bottom: 1px solid var(--n-border);
+            padding: 0 1.5rem;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-left { display: flex; align-items: center; gap: 1.2rem; }
+
+        .nav-logo {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            font-weight: bold;
+            letter-spacing: 0.3rem;
+            color: var(--n-amber);
+            text-decoration: none;
+            text-shadow: 0 0 12px rgba(245,158,11,0.4);
+        }
+
+        .nav-sep     { color: var(--n-border-hi); }
+        .nav-current {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.2rem;
+            color: var(--n-text-dim);
+        }
+
+        .navbar-right { display: flex; align-items: center; gap: 0.8rem; }
+
+        .nav-user {
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            color: var(--n-text-dim);
+            letter-spacing: 0.1rem;
+        }
+
+        .nav-user span { color: var(--n-amber); }
+
+        .btn-settings {
+            background: transparent;
+            border: 1px solid var(--n-border);
+            color: var(--n-text-dim);
+            font-size: 0.85rem;
+            width: 30px; height: 30px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-settings:hover { border-color: var(--n-amber); color: var(--n-amber); }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--n-amber);
+            color: var(--n-amber);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.2rem;
+            padding: 0.3rem 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-logout:hover { background: var(--n-amber); color: #0d1117; }
+
+        /* ── TOOLBAR ── */
+        .toolbar {
+            background: var(--n-surface);
+            border-bottom: 1px solid var(--n-border);
+            padding: 0.7rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--n-bg);
+            border: 1px solid var(--n-border);
+            padding: 0 0.8rem;
+            flex: 1;
+            max-width: 420px;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--n-amber);
+            box-shadow: 0 0 0 3px rgba(245,158,11,0.08);
+        }
+
+        .search-icon { font-family: 'Courier New', monospace; font-size: 0.7rem; color: var(--n-text-dim); flex-shrink: 0; }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--n-text);
+            font-size: 0.82rem;
+            padding: 0.5rem 0.5rem;
+            outline: none;
+        }
+
+        .search-input::placeholder { color: var(--n-text-mute); }
+
+        .toolbar-actions { margin-left: auto; display: flex; gap: 0.5rem; }
+
+        .btn-new-note {
+            background: var(--n-amber);
+            border: none;
+            color: #0d1117;
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            font-weight: bold;
+            letter-spacing: 0.15rem;
+            padding: 0.45rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .btn-new-note:hover { background: #fbbf24; box-shadow: 0 0 12px rgba(245,158,11,0.4); }
+
+        .btn {
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.1rem;
+            padding: 0.45rem 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-ghost { background: transparent; border: 1px solid var(--n-border-hi); color: var(--n-text-dim); }
+        .btn-ghost:hover { border-color: var(--n-amber); color: var(--n-amber); }
+        .btn-primary { background: var(--n-amber); border: none; color: #0d1117; font-weight: bold; }
+        .btn-primary:hover { background: #fbbf24; }
+
+        /* ── PAGE LAYOUT ── */
+        .page-body { display: flex; min-height: calc(100vh - 104px); }
+
+        /* ── LEFT FILTER SIDEBAR ── */
+        .filter-sidebar {
+            width: 220px;
+            flex-shrink: 0;
+            background: var(--n-surface);
+            border-right: 1px solid var(--n-border);
+            padding: 1.2rem 0;
+            position: sticky;
+            top: 104px;
+            height: calc(100vh - 104px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--n-border-hi) transparent;
+        }
+
+        .filter-sidebar::-webkit-scrollbar       { width: 3px; }
+        .filter-sidebar::-webkit-scrollbar-thumb { background: var(--n-border-hi); }
+
+        .sidebar-section-label {
+            font-family: 'Courier New', monospace;
+            font-size: 0.58rem;
+            letter-spacing: 0.2rem;
+            color: var(--n-text-mute);
+            padding: 0 1rem 0.6rem;
+            display: block;
+        }
+
+        .filter-row {
+            display: flex;
+            flex-direction: column;
+            padding: 0.6rem 1rem;
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            transition: background 0.15s ease;
+            gap: 0.25rem;
+        }
+
+        .filter-row:hover { background: rgba(245,158,11,0.05); }
+        .filter-row.active { border-left-color: var(--n-amber); background: rgba(245,158,11,0.07); }
+
+        .filter-row-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.4rem;
+        }
+
+        .filter-tag-name {
+            font-size: 0.8rem;
+            color: var(--n-text-dim);
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .filter-row.active .filter-tag-name { color: var(--n-text); font-weight: 500; }
+
+        .filter-tag-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: var(--n-border-hi);
+        }
+
+        .filter-count {
+            font-family: 'Courier New', monospace;
+            font-size: 0.58rem;
+            color: var(--n-text-mute);
+            background: var(--n-bg);
+            padding: 0.08rem 0.4rem;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .filter-row.active .filter-count { color: var(--n-amber); }
+
+        .filter-last-updated {
+            font-family: 'Courier New', monospace;
+            font-size: 0.56rem;
+            color: var(--n-text-mute);
+            padding-left: 1.15rem;
+        }
+
+        .sidebar-divider { height: 1px; background: var(--n-border); margin: 0.5rem 1rem; }
+
+        /* ── CONTENT AREA ── */
+        .content-area { flex: 1; min-width: 0; }
+
+        .deck-stats {
+            padding: 0.55rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            border-bottom: 1px solid var(--n-border);
+            background: var(--n-surface);
+        }
+
+        .stat-item {
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            color: var(--n-text-dim);
+            letter-spacing: 0.1rem;
+        }
+
+        .stat-item span { color: var(--n-amber); }
+
+        .active-filter-badge {
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            padding: 0.15rem 0.5rem;
+            background: rgba(245,158,11,0.1);
+            color: var(--n-amber);
+            border: 1px solid rgba(245,158,11,0.25);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            border-radius: 3px;
+        }
+
+        .active-filter-badge:hover { background: rgba(245,158,11,0.2); }
+
+        /* ── SORT DROPDOWN ── */
+        .sort-wrap {
+            margin-left: auto;
+            position: relative;
+        }
+
+        .sort-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: transparent;
+            border: 1px solid var(--n-border-hi);
+            color: var(--n-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.1rem;
+            padding: 0.3rem 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .sort-btn:hover,
+        .sort-btn.open { border-color: var(--n-amber); color: var(--n-amber); }
+
+        .sort-btn .sort-arrow { font-size: 0.55rem; transition: transform 0.2s; }
+        .sort-btn.open .sort-arrow { transform: rotate(180deg); }
+
+        .sort-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            background: var(--n-surface);
+            border: 1px solid var(--n-border-hi);
+            border-radius: 4px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            min-width: 200px;
+            z-index: 50;
+            overflow: hidden;
+        }
+
+        .sort-dropdown.open { display: block; }
+
+        .sort-group-label {
+            font-family: 'Courier New', monospace;
+            font-size: 0.55rem;
+            letter-spacing: 0.15rem;
+            color: var(--n-text-mute);
+            padding: 0.6rem 0.9rem 0.3rem;
+        }
+
+        .sort-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.45rem 0.9rem;
+            font-size: 0.78rem;
+            color: var(--n-text-dim);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.12s ease;
+            gap: 0.5rem;
+        }
+
+        .sort-option:hover { background: rgba(245,158,11,0.06); color: var(--n-text); }
+
+        .sort-option.active {
+            color: var(--n-amber);
+            background: rgba(245,158,11,0.08);
+        }
+
+        .sort-option .sort-icon { font-size: 0.75rem; flex-shrink: 0; }
+        .sort-option .sort-check { font-size: 0.65rem; color: var(--n-amber); }
+
+        .sort-divider { height: 1px; background: var(--n-border); margin: 0.3rem 0; }
+
+        /* ── CARD GRID ── */
+        .deck {
+            padding: 1.2rem 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .note-card {
+            background: var(--n-surface);
+            border: 1px solid var(--n-border);
+            border-radius: 6px;
+            padding: 1rem 1rem 1rem 1.3rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            text-decoration: none;
+            color: inherit;
+            overflow: hidden;
+        }
+
+        .note-card:hover {
+            border-color: var(--n-amber);
+            box-shadow: 0 4px 20px rgba(245,158,11,0.1);
+            transform: translateY(-2px);
+        }
+
+        .note-card.pinned { border-color: var(--n-amber-dim); }
+
+        .note-card.pinned::after {
+            content: '📌';
+            position: absolute;
+            top: 0.6rem; right: 0.6rem;
+            font-size: 0.65rem;
+        }
+
+        .note-card-accent {
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: var(--n-amber);
+        }
+
+        .note-card-title {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--n-text);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .note-card-preview {
+            font-size: 0.76rem;
+            color: var(--n-text-dim);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .note-card-footer {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--n-border);
+            gap: 0.5rem;
+        }
+
+        .note-card-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; flex: 1; }
+
+        .note-tag-badge {
+            font-size: 0.6rem;
+            padding: 0.12rem 0.4rem;
+            border-radius: 10px;
+            background: rgba(245,158,11,0.12);
+            color: var(--n-amber);
+        }
+
+        .note-card-meta {
+            font-family: 'Courier New', monospace;
+            font-size: 0.57rem;
+            color: var(--n-text-mute);
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .note-vis          { display: block; margin-bottom: 0.1rem; }
+        .note-vis.public   { color: var(--n-green); }
+        .note-vis.shared   { color: var(--n-blue);  }
+        .note-vis.private  { color: var(--n-text-mute); }
+
+        .note-comment-count {
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            color: var(--n-text-dim);
+            margin-top: 0.35rem;
+        }
+
+        /* ── EMPTY STATE ── */
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+        .empty-state h3 {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            letter-spacing: 0.2rem;
+            color: var(--n-text-dim);
+            margin-bottom: 0.5rem;
+        }
+        .empty-state p { font-size: 0.8rem; color: var(--n-text-mute); }
+        .empty-state a { color: var(--n-amber); text-decoration: none; }
+
+        /* ── TAG MODAL ── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--n-surface);
+            border: 1px solid var(--n-border-hi);
+            border-radius: 8px;
+            padding: 1.5rem;
+            width: 420px;
+        }
+
+        .modal h3 {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.2rem;
+            color: var(--n-amber);
+            margin-bottom: 1rem;
+        }
+
+        .form-group { margin-bottom: 1rem; }
+
+        .form-label {
+            display: block;
+            font-family: 'Courier New', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.12rem;
+            color: var(--n-text-dim);
+            margin-bottom: 0.4rem;
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--n-bg);
+            border: 1px solid var(--n-border);
+            color: var(--n-text);
+            font-size: 0.85rem;
+            padding: 0.5rem 0.7rem;
+            outline: none;
+            border-radius: 4px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus { border-color: var(--n-amber); }
+
+        .color-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+        .color-swatch {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .color-swatch:hover    { transform: scale(1.15); }
+        .color-swatch.selected { border-color: white; }
+
+        .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
+
+        /* ── COLLAPSIBLE SIDEBAR ── */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            bottom: 1.2rem;
+            left: 1.2rem;
+            z-index: 150;
+            background: var(--n-amber);
+            border: none;
+            color: #0d1117;
+            font-size: 1rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 12px rgba(245,158,11,0.4);
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-toggle:hover { background: #fbbf24; transform: scale(1.08); }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 120;
+        }
+
+        /* desktop — collapse button in sidebar header */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem 0.6rem;
+        }
+
+        .sidebar-collapse-btn {
+            background: transparent;
+            border: 1px solid var(--n-border);
+            color: var(--n-text-mute);
+            font-size: 0.7rem;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .sidebar-collapse-btn:hover { border-color: var(--n-amber); color: var(--n-amber); }
+
+        /* collapsed state — desktop */
+        .filter-sidebar.collapsed {
+            width: 44px;
+            overflow: hidden;
+        }
+
+        .filter-sidebar.collapsed .sidebar-section-label,
+        .filter-sidebar.collapsed .filter-row,
+        .filter-sidebar.collapsed .sidebar-divider,
+        .filter-sidebar.collapsed .tag-search-wrap {
+            display: none;
+        }
+
+        .filter-sidebar.collapsed .sidebar-header {
+            justify-content: center;
+            padding: 0.6rem 0;
+        }
+
+        .filter-sidebar.collapsed .sidebar-collapse-btn {
+            font-size: 0.8rem;
+        }
+
+        /* mobile breakpoint */
+        @media (max-width: 640px) {
+            .filter-sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                z-index: 130;
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+                width: 240px;
+            }
+
+            .filter-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.active { display: block; }
+
+            .sidebar-toggle { display: flex; }
+
+            .sidebar-collapse-btn { display: none; }
+
+            .page-body { display: block; }
+        }
+
+        /* tag search in sidebar */
+        .tag-search-wrap {
+            padding: 0 0.8rem 0.7rem;
+            border-bottom: 1px solid var(--n-border);
+            margin-bottom: 0.4rem;
+        }
+
+        .tag-search-input {
+            width: 100%;
+            background: var(--n-bg);
+            border: 1px solid var(--n-border);
+            border-radius: 4px;
+            color: var(--n-text);
+            font-family: -apple-system, sans-serif;
+            font-size: 0.72rem;
+            padding: 0.35rem 0.6rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .tag-search-input:focus { border-color: var(--n-amber); }
+        .tag-search-input::placeholder { color: var(--n-text-mute); }
+
+        .filter-row.tag-hidden { display: none; }
+
+        .emoji-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            max-height: 160px;
+            overflow-y: auto;
+            padding: 0.2rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--n-border-hi) transparent;
+        }
+
+        .emoji-grid::-webkit-scrollbar       { width: 3px; }
+        .emoji-grid::-webkit-scrollbar-thumb { background: var(--n-border-hi); border-radius: 2px; }
+
+        .emoji-swatch {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            background: var(--n-bg);
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .emoji-swatch:hover    { background: var(--n-border-hi); }
+        .emoji-swatch.selected { border-color: var(--n-amber); background: rgba(245,158,11,0.1); }
+
+        .color-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            max-height: 100px;
+            overflow-y: auto;
+            padding: 0.2rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--n-border-hi) transparent;
+        }
+
+        .color-row::-webkit-scrollbar       { width: 3px; }
+        .color-row::-webkit-scrollbar-thumb { background: var(--n-border-hi); border-radius: 2px; }
+    </style>
+    <script src="{% static 'interface/theme.js' %}"></script>
+</head>
+<body>
+
+    <!-- navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <a href="{% url 'dashboard' %}" class="nav-logo">NET-1</a>
+            <span class="nav-sep">/</span>
+            <span class="nav-current">NOTES</span>
+        </div>
+        <div class="navbar-right">
+            <span class="nav-user">> USER: <span>{{ request.user.username|upper }}</span></span>
+            <button class="btn-settings" title="Settings" onclick="openThemePanel()">⚙</button>
+            <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button class="btn-logout" type="submit">[ LOGOUT ]</button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- toolbar -->
+    <div class="toolbar">
+        <form method="GET" style="display:contents;">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input class="search-input" type="text" name="q"
+                       placeholder="Search notes..." value="{{ search }}">
+                {% if tag_filter %}
+                    <input type="hidden" name="tag" value="{{ tag_filter }}">
+                {% endif %}
+            </div>
+        </form>
+        <div class="toolbar-actions">
+            <a href="{% url 'note_create' %}" class="btn-new-note">+ NEW NOTE</a>
+            <button class="btn btn-ghost"
+                    onclick="document.getElementById('tagModal').classList.add('active')">
+                + TAG
+            </button>
+        </div>
+    </div>
+
+    <!-- mobile sidebar toggle -->
+    <button class="sidebar-toggle" id="sidebarToggle" title="Filters">⊟</button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- page body -->
+    <div class="page-body">
+
+        <!-- left filter sidebar -->
+        <aside class="filter-sidebar" id="filterSidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-section-label" style="padding:0; margin:0;">// FILTER BY TAG</span>
+                <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Collapse">‹</button>
+            </div>
+
+            <!-- ALL NOTES -->
+            <a href="{% url 'notes_deck' %}{% if search %}?q={{ search }}{% endif %}"
+               class="filter-row filter-row-all {% if not tag_filter and not vis_filter %}active{% endif %}">
+                <div class="filter-row-top">
+                    <span class="filter-tag-name">📋 All Notes</span>
+                    <span class="filter-count">{{ total_count }}</span>
+                </div>
+            </a>
+
+            {% if shared_count > 0 %}
+            <a href="?vis=shared{% if search %}&q={{ search }}{% endif %}"
+               class="filter-row filter-row-all {% if vis_filter == 'shared' %}active{% endif %}">
+                <div class="filter-row-top">
+                    <span class="filter-tag-name">◎ Shared</span>
+                    <span class="filter-count">{{ shared_count }}</span>
+                </div>
+            </a>
+            {% endif %}
+
+            {% if public_count > 0 %}
+            <a href="?vis=public{% if search %}&q={{ search }}{% endif %}"
+               class="filter-row filter-row-all {% if vis_filter == 'public' %}active{% endif %}">
+                <div class="filter-row-top">
+                    <span class="filter-tag-name">◉ Public</span>
+                    <span class="filter-count">{{ public_count }}</span>
+                </div>
+            </a>
+            {% endif %}
+
+            <div class="sidebar-divider"></div>
+
+            <!-- tag search -->
+            <div class="tag-search-wrap">
+                <input class="tag-search-input" id="tagSearch"
+                       type="text" placeholder="🔍 search tags...">
+            </div>
+
+            {% for tag in sidebar_tags %}
+                <a href="?tag={{ tag.name }}{% if vis_filter %}&vis={{ vis_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}"
+                   class="filter-row {% if tag_filter == tag.name %}active{% endif %}"
+                   data-color="{{ tag.color }}">
+                    <div class="filter-row-top">
+                        <span class="filter-tag-name">
+                            <span class="filter-tag-dot" data-dot="{{ tag.color }}"></span>
+                            {{ tag.icon }} {{ tag.name }}
+                        </span>
+                        <span class="filter-count">{{ tag.note_count }}</span>
+                    </div>
+                    {% if tag.last_updated %}
+                        <span class="filter-last-updated">{{ tag.last_updated|date:"d M Y, H:i" }}</span>
+                    {% endif %}
+                </a>
+            {% endfor %}
+
+            {% if untagged_count > 0 %}
+                <div class="sidebar-divider"></div>
+                <a href="?tag=__untagged__{% if vis_filter %}&vis={{ vis_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}"
+                   class="filter-row {% if tag_filter == '__untagged__' %}active{% endif %}">
+                    <div class="filter-row-top">
+                        <span class="filter-tag-name">
+                            <span class="filter-tag-dot"></span>
+                            Untagged
+                        </span>
+                        <span class="filter-count">{{ untagged_count }}</span>
+                    </div>
+                    {% if untagged_last_updated %}
+                        <span class="filter-last-updated">{{ untagged_last_updated|date:"d M Y, H:i" }}</span>
+                    {% endif %}
+                </a>
+            {% endif %}
+        </aside>
+
+        <!-- main content -->
+        <div class="content-area">
+
+            <!-- stats bar -->
+            <div class="deck-stats">
+                <div class="stat-item">SHOWING <span>{{ notes.count }}</span></div>
+                <div class="stat-item">TOTAL <span>{{ total_count }}</span></div>
+                <div class="stat-item">TAGS <span>{{ user_tags.count }}</span></div>
+                {% if tag_filter %}
+                    <a href="{% url 'notes_deck' %}{% if search %}?q={{ search }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"
+                       class="active-filter-badge">
+                        ✕ {% if tag_filter == '__untagged__' %}UNTAGGED{% else %}{{ tag_filter }}{% endif %}
+                    </a>
+                {% endif %}
+                {% if vis_filter %}
+                    <a href="{% url 'notes_deck' %}{% if search %}?q={{ search }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"
+                       class="active-filter-badge">
+                        ✕ {{ vis_filter|upper }}
+                    </a>
+                {% endif %}
+
+                <!-- sort dropdown -->
+                <div class="sort-wrap">
+                    <button class="sort-btn" id="sortBtn">
+                        ⇅ SORT
+                        {% if sort and sort != 'updated' %}
+                            <span style="color:var(--n-amber);">•</span>
+                        {% endif %}
+                        <span class="sort-arrow">▼</span>
+                    </button>
+                    <div class="sort-dropdown" id="sortDropdown">
+
+                        <div class="sort-group-label">DATE</div>
+                        <a href="?{% if tag_filter %}tag={{ tag_filter }}&{% endif %}{% if vis_filter %}vis={{ vis_filter }}&{% endif %}{% if search %}q={{ search }}&{% endif %}sort=updated"
+                           class="sort-option {% if sort == 'updated' or not sort %}active{% endif %}">
+                            <span>🕐 Last updated</span>
+                            {% if sort == 'updated' or not sort %}<span class="sort-check">✓</span>{% endif %}
+                        </a>
+                        <a href="?{% if tag_filter %}tag={{ tag_filter }}&{% endif %}{% if vis_filter %}vis={{ vis_filter }}&{% endif %}{% if search %}q={{ search }}&{% endif %}sort=oldest"
+                           class="sort-option {% if sort == 'oldest' %}active{% endif %}">
+                            <span>🕐 Oldest first</span>
+                            {% if sort == 'oldest' %}<span class="sort-check">✓</span>{% endif %}
+                        </a>
+                        <a href="?{% if tag_filter %}tag={{ tag_filter }}&{% endif %}{% if vis_filter %}vis={{ vis_filter }}&{% endif %}{% if search %}q={{ search }}&{% endif %}sort=created"
+                           class="sort-option {% if sort == 'created' %}active{% endif %}">
+                            <span>📅 Date created</span>
+                            {% if sort == 'created' %}<span class="sort-check">✓</span>{% endif %}
+                        </a>
+
+                        <div class="sort-divider"></div>
+                        <div class="sort-group-label">TITLE</div>
+                        <a href="?{% if tag_filter %}tag={{ tag_filter }}&{% endif %}{% if vis_filter %}vis={{ vis_filter }}&{% endif %}{% if search %}q={{ search }}&{% endif %}sort=title_asc"
+                           class="sort-option {% if sort == 'title_asc' %}active{% endif %}">
+                            <span>🔤 Title A → Z</span>
+                            {% if sort == 'title_asc' %}<span class="sort-check">✓</span>{% endif %}
+                        </a>
+                        <a href="?{% if tag_filter %}tag={{ tag_filter }}&{% endif %}{% if vis_filter %}vis={{ vis_filter }}&{% endif %}{% if search %}q={{ search }}&{% endif %}sort=title_desc"
+                           class="sort-option {% if sort == 'title_desc' %}active{% endif %}">
+                            <span>🔤 Title Z → A</span>
+                            {% if sort == 'title_desc' %}<span class="sort-check">✓</span>{% endif %}
+                        </a>
+
+                        <div class="sort-divider"></div>
+                        <div class="sort-group-label">OTHER</div>
+                        <a href="?{% if tag_filter %}tag={{ tag_filter }}&{% endif %}{% if vis_filter %}vis={{ vis_filter }}&{% endif %}{% if search %}q={{ search }}&{% endif %}sort=author"
+                           class="sort-option {% if sort == 'author' %}active{% endif %}">
+                            <span>👤 Author</span>
+                            {% if sort == 'author' %}<span class="sort-check">✓</span>{% endif %}
+                        </a>
+                        <a href="?{% if tag_filter %}tag={{ tag_filter }}&{% endif %}{% if vis_filter %}vis={{ vis_filter }}&{% endif %}{% if search %}q={{ search }}&{% endif %}sort=comments"
+                           class="sort-option {% if sort == 'comments' %}active{% endif %}">
+                            <span>💬 Most comments</span>
+                            {% if sort == 'comments' %}<span class="sort-check">✓</span>{% endif %}
+                        </a>
+                        <a href="?{% if tag_filter %}tag={{ tag_filter }}&{% endif %}{% if vis_filter %}vis={{ vis_filter }}&{% endif %}{% if search %}q={{ search }}&{% endif %}sort=pinned"
+                           class="sort-option {% if sort == 'pinned' %}active{% endif %}">
+                            <span>📌 Pinned first</span>
+                            {% if sort == 'pinned' %}<span class="sort-check">✓</span>{% endif %}
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- card grid -->
+            <div class="deck">
+                {% for note in notes %}
+                    <a class="note-card {% if note.pinned %}pinned{% endif %}"
+                       href="{% url 'note_detail' note.id %}"
+                       data-accent="{% if note.tags.first %}{{ note.tags.first.color }}{% endif %}">
+
+                        <div class="note-card-accent"></div>
+
+                        <div>
+                            <div class="note-card-title">{{ note.title }}</div>
+                            <div class="note-card-preview">{{ note.body_html|striptags|truncatechars:140 }}</div>
+                        </div>
+
+                        <div class="note-card-footer">
+                            <div>
+                                <div class="note-card-tags">
+                                    {% for tag in note.tags.all %}
+                                        <span class="note-tag-badge" data-color="{{ tag.color }}">
+                                            {{ tag.icon }} {{ tag.name }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                                {% if note.comments.count > 0 %}
+                                    <div class="note-comment-count">
+                                        💬 {{ note.comments.count }} comment{{ note.comments.count|pluralize }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="note-card-meta">
+                                <span class="note-vis {{ note.visibility }}">
+                                    {% if note.visibility == 'public' %}◉ PUBLIC
+                                    {% elif note.visibility == 'shared' %}◎ SHARED
+                                    {% else %}○ PRIVATE{% endif %}
+                                </span>
+                                <span>{{ note.updated_at|date:"d M Y" }}</span>
+                                {% if note.author != request.user %}
+                                    <span style="color: var(--n-blue); display: block;">
+                                        {{ note.author.username }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                {% empty %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <h3>NO NOTES FOUND</h3>
+                        <p>
+                            {% if search or tag_filter %}
+                                No notes match your filter.
+                                <a href="{% url 'notes_deck' %}">Clear filters</a>
+                            {% else %}
+                                <a href="{% url 'note_create' %}">Create your first note</a>
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- tag modal -->
+    <div class="modal-overlay" id="tagModal">
+        <div class="modal">
+            <h3>// CREATE TAG</h3>
+            <div class="form-group">
+                <label class="form-label">TAG NAME</label>
+                <input class="form-input" type="text" id="tagName" placeholder="e.g. research">
+            </div>
+            <div class="form-group">
+                <label class="form-label">ICON</label>
+                <div class="emoji-grid" id="emojiGrid"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">COLOUR</label>
+                <div class="color-row" id="colorRow"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost"
+                        onclick="document.getElementById('tagModal').classList.remove('active')">
+                    CANCEL
+                </button>
+                <button class="btn btn-primary" onclick="createTag()">CREATE</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function hexToRgb(hex) {
+            return {
+                r: parseInt(hex.slice(1,3), 16),
+                g: parseInt(hex.slice(3,5), 16),
+                b: parseInt(hex.slice(5,7), 16),
+            };
+        }
+
+        // sidebar row colors
+        document.querySelectorAll('.filter-row[data-color]').forEach(row => {
+            const hex = row.dataset.color;
+            if (!hex) return;
+            const { r, g, b } = hexToRgb(hex);
+            if (row.classList.contains('active')) {
+                row.style.borderLeftColor = hex;
+                row.style.background = 'rgba('+r+','+g+','+b+',0.08)';
+                const name = row.querySelector('.filter-tag-name');
+                if (name) name.style.color = hex;
+            }
+            row.addEventListener('mouseenter', () => {
+                row.style.borderLeftColor = hex;
+                row.style.background = 'rgba('+r+','+g+','+b+',0.06)';
+            });
+            row.addEventListener('mouseleave', () => {
+                if (!row.classList.contains('active')) {
+                    row.style.borderLeftColor = 'transparent';
+                    row.style.background = '';
+                }
+            });
+        });
+
+        // sidebar dots
+        document.querySelectorAll('.filter-tag-dot[data-dot]').forEach(dot => {
+            dot.style.background = dot.dataset.dot;
+        });
+
+        // card tag badges
+        document.querySelectorAll('.note-tag-badge[data-color]').forEach(el => {
+            const hex = el.dataset.color;
+            if (!hex) return;
+            const { r, g, b } = hexToRgb(hex);
+            el.style.color      = hex;
+            el.style.background = 'rgba('+r+','+g+','+b+',0.12)';
+        });
+
+        // card accent bars
+        document.querySelectorAll('.note-card[data-accent]').forEach(card => {
+            const hex    = card.dataset.accent;
+            const accent = card.querySelector('.note-card-accent');
+            if (accent) accent.style.background = hex || '#f59e0b';
+        });
+
+        // colour swatches
+        const TAG_COLORS = [
+            // reds & pinks
+            '#f85149','#ff6b6b','#ff8fab','#e91e8c','#c9184a',
+            // oranges & ambers
+            '#ffa657','#f59e0b','#ff9500','#e76f00','#ff6d00',
+            // yellows
+            '#ffd60a','#f9e900','#c8b400','#e9c46a','#f4d03f',
+            // greens
+            '#39d353','#3fb950','#2da44e','#1a7f37','#57cc99',
+            // teals & cyans
+            '#79c0ff','#58a6ff','#00e5ff','#00bcd4','#26c6da',
+            // blues
+            '#388bfd','#1f6feb','#0969da','#0550ae','#003f88',
+            // purples & violets
+            '#a371f7','#8957e5','#6e40c9','#d2a8ff','#b794f4',
+            // magentas & roses
+            '#f0abfc','#e879f9','#c026d3','#9d174d','#db2777',
+            // neutrals & greys
+            '#8b949e','#6e7681','#b1bac4','#c9d1d9','#30363d',
+            // whites & creams
+            '#f0f6fc','#fffbeb','#fef3c7','#ecfdf5','#eff6ff',
+        ];
+        let selectedColor = TAG_COLORS[0];
+
+        const colorRow = document.getElementById('colorRow');
+        TAG_COLORS.forEach(c => {
+            const sw = document.createElement('div');
+            sw.className        = 'color-swatch' + (c === selectedColor ? ' selected' : '');
+            sw.style.background = c;
+            sw.title            = c;
+            sw.addEventListener('click', () => {
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                sw.classList.add('selected');
+                selectedColor = c;
+            });
+            colorRow.appendChild(sw);
+        });
+
+        // emoji picker
+        const EMOJIS = [
+            // organisation
+            '🏷️','📌','🔖','🗂️','📋','📁','🗃️','📂','🗄️','📊',
+            // writing & notes
+            '📝','✏️','🖊️','📓','📔','📒','📃','📄','📑','🗒️',
+            // ideas & brain
+            '💡','🧠','🔍','🔎','💭','🤔','👁️','🧐','✨','⚡',
+            // tech & code
+            '💻','🖥️','⌨️','🖱️','📱','🔧','🛠️','⚙️','🔌','📡',
+            // science & research
+            '🔬','🔭','🧬','🧪','🧫','⚗️','📐','📏','🗺️','🌐',
+            // media & arts
+            '🎨','🎵','🎶','🎬','📷','🖼️','🎭','🎤','📻','🎮',
+            // people & social
+            '💬','👥','🤝','💼','🏢','📞','📧','📮','🗣️','👋',
+            // time & planning
+            '📅','📆','⏰','⏳','🕐','📈','📉','🗓️','⌛','🔔',
+            // nature & places
+            '🌱','🌿','🌍','🌙','⭐','☀️','🌊','🏔️','🌸','🍀',
+            // symbols & misc
+            '🔥','❤️','💛','💚','💙','💜','🏆','🎯','🚀','🎁',
+        ];
+        let selectedEmoji = EMOJIS[0];
+
+        const emojiGrid = document.getElementById('emojiGrid');
+        EMOJIS.forEach(e => {
+            const sw = document.createElement('div');
+            sw.className   = 'emoji-swatch' + (e === selectedEmoji ? ' selected' : '');
+            sw.textContent = e;
+            sw.title       = e;
+            sw.addEventListener('click', () => {
+                document.querySelectorAll('.emoji-swatch').forEach(s => s.classList.remove('selected'));
+                sw.classList.add('selected');
+                selectedEmoji = e;
+            });
+            emojiGrid.appendChild(sw);
+        });
+
+        // create tag
+        function createTag() {
+            const name = document.getElementById('tagName').value.trim();
+            if (!name) return;
+            const fd = new FormData();
+            fd.append('name',  name);
+            fd.append('color', selectedColor);
+            fd.append('icon',  selectedEmoji);
+            fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            fetch('{% url "tag_create" %}', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) { alert(data.error); return; }
+                    document.getElementById('tagModal').classList.remove('active');
+                    window.location.reload();
+                });
+        }
+
+        document.getElementById('tagModal').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+
+        // live tag search in sidebar
+        document.getElementById('tagSearch').addEventListener('input', function() {
+            const query = this.value.trim().toLowerCase();
+            document.querySelectorAll('.filter-sidebar .filter-row[data-color]').forEach(row => {
+                const name = row.querySelector('.filter-tag-name');
+                if (!name) return;
+                const text = name.textContent.toLowerCase();
+                row.classList.toggle('tag-hidden', query.length > 0 && !text.includes(query));
+            });
+        });
+
+        // ── sort dropdown ──
+        const sortBtn      = document.getElementById('sortBtn');
+        const sortDropdown = document.getElementById('sortDropdown');
+
+        sortBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sortBtn.classList.toggle('open');
+            sortDropdown.classList.toggle('open');
+        });
+
+        document.addEventListener('click', () => {
+            sortBtn.classList.remove('open');
+            sortDropdown.classList.remove('open');
+        });
+
+        sortDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+        // ── sidebar collapse (desktop) ──
+        const sidebar         = document.getElementById('filterSidebar');
+        const collapseBtn     = document.getElementById('sidebarCollapseBtn');
+        const COLLAPSED_KEY   = 'net1_sidebar_collapsed';
+
+        function setSidebarCollapsed(collapsed) {
+            sidebar.classList.toggle('collapsed', collapsed);
+            collapseBtn.textContent = collapsed ? '›' : '‹';
+            collapseBtn.title       = collapsed ? 'Expand' : 'Collapse';
+            localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0');
+        }
+
+        // restore state on load
+        if (localStorage.getItem(COLLAPSED_KEY) === '1') {
+            setSidebarCollapsed(true);
+        }
+
+        collapseBtn.addEventListener('click', () => {
+            setSidebarCollapsed(!sidebar.classList.contains('collapsed'));
+        });
+
+        // ── mobile open/close ──
+        const toggle  = document.getElementById('sidebarToggle');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        toggle.addEventListener('click', () => {
+            sidebar.classList.add('mobile-open');
+            overlay.classList.add('active');
+            toggle.textContent = '✕';
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+            toggle.textContent = '⊟';
+        });
+    </script>
+{% include "interface/theme_panel.html" %}
+</body>
+</html>

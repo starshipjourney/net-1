@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <title>{{ article.title }} — NET-1</title>
+    <style>
+        /* theme variables — set by theme.js, article uses light reading defaults */
+        :root {
+            --bg:        var(--t-bg,        #f5f0e8);
+            --surface:   var(--t-surface,   #ede8dd);
+            --border:    var(--t-border,    #c8b89a);
+            --text:      var(--t-text,      #2c1810);
+            --text-dim:  var(--t-text-dim,  #6b5a3e);
+            --amber:     var(--t-accent,    #8b6914);
+            --highlight: rgba(from var(--t-accent) r g b / 0.22);
+            --progress:  var(--t-border,    #e0d5c0);
+            --badge-wiki-bg:     #1a2a3a;
+            --badge-wiki-text:   #79c0ff;
+            --badge-wiki-border: #1f4a6e;
+            --badge-gut-bg:      #1a2e1a;
+            --badge-gut-text:    #56d364;
+            --badge-gut-border:  #2a5a2a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Georgia, 'Times New Roman', serif;
+            min-height: 100vh;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .navbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: background 0.2s ease;
+        }
+
+        .navbar-left  { display: flex; align-items: center; gap: 1rem; }
+        .navbar-right { display: flex; align-items: center; gap: 0.8rem; }
+
+        .nav-logo {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            font-weight: bold;
+            letter-spacing: 0.3rem;
+            color: var(--amber);
+            text-decoration: none;
+        }
+
+        .nav-back {
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.1rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            border: 1px solid var(--border);
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+            transition: all 0.15s;
+        }
+        .nav-back:hover { border-color: var(--amber); color: var(--amber); }
+
+        .source-badge {
+            font-family: 'Courier New', monospace;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.58rem;
+            letter-spacing: 0.05rem;
+        }
+        .source-badge.wikipedia { background: var(--badge-wiki-bg); color: var(--badge-wiki-text); border: 1px solid var(--badge-wiki-border); }
+        .source-badge.gutenberg { background: var(--badge-gut-bg);  color: var(--badge-gut-text);  border: 1px solid var(--badge-gut-border); }
+
+        .theme-toggle {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.08rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.15s;
+        }
+        .theme-toggle:hover { border-color: var(--amber); color: var(--amber); }
+
+        .progress-bar {
+            height: 3px;
+            background: var(--progress);
+            position: sticky;
+            top: 52px;
+            z-index: 99;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--amber);
+            transition: width 0.1s ease;
+        }
+
+        .ref-banner {
+            display: none;
+            position: sticky;
+            top: 55px;
+            z-index: 98;
+            background: var(--amber);
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.1rem;
+            padding: 0.4rem 1.5rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .ref-banner-close {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            font-size: 0.6rem;
+            padding: 0.1rem 0.4rem;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .article-wrap {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem 6rem;
+        }
+
+        .article-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--text);
+            line-height: 1.25;
+            margin-bottom: 0.8rem;
+        }
+
+        .article-byline {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .article-author { font-style: italic; }
+
+        .article-body {
+            font-size: 1rem;
+            line-height: 1.9;
+            color: var(--text);
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .article-body p             { margin-bottom: 1em; text-indent: 1.5em; }
+        .article-body p:first-child { text-indent: 0; }
+
+        .passage-highlight {
+            background: var(--highlight);
+            border-radius: 3px;
+            padding: 0.05em 0.2em;
+            border-bottom: 2px solid var(--amber);
+        }
+    </style>
+    <script src="{% static 'interface/theme.js' %}"></script>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="navbar-left">
+            <a href="{% url 'dashboard' %}" class="nav-logo">NET-1</a>
+            <a href="javascript:history.back()" class="nav-back">← BACK</a>
+        </div>
+        <div class="navbar-right">
+            {% if article.author %}
+                <span style="font-family:'Courier New',monospace;font-size:0.6rem;color:var(--text-dim);font-style:italic;">{{ article.author }}</span>
+            {% endif %}
+            <span class="source-badge {{ article.source_type }}">
+                {% if article.source_type == 'gutenberg' %}📖 GUTENBERG{% else %}📄 WIKIPEDIA{% endif %}
+            </span>
+            <button class="theme-toggle" onclick="openThemePanel()" title="Themes">
+                <span>◑</span>
+                <span>THEME</span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    {% if ref_text %}
+    <div class="ref-banner" id="refBanner">
+        <span>↓ REFERENCED PASSAGE HIGHLIGHTED BELOW</span>
+        <button class="ref-banner-close" onclick="document.getElementById('refBanner').style.display='none'">✕ DISMISS</button>
+    </div>
+    {% endif %}
+
+    <div class="article-wrap">
+        <h1 class="article-title">{{ article.title }}</h1>
+        <div class="article-byline">
+            {% if article.author %}<span class="article-author">by {{ article.author }}</span>{% endif %}
+            <span style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.1rem;">{{ article.source_type|upper }}</span>
+        </div>
+        <div class="article-body" id="articleBody">
+            {% for para in article.full_text.splitlines %}
+                {% if para.strip %}<p>{{ para }}</p>{% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // reading progress
+        window.addEventListener('scroll', () => {
+            const s = document.documentElement.scrollHeight - window.innerHeight;
+            document.getElementById('progressFill').style.width =
+                (s > 0 ? (window.scrollY / s) * 100 : 100) + '%';
+        });
+
+        // passage highlight
+        const refText = '{% if ref_text %}{{ ref_text|escapejs }}{% endif %}';
+
+        if (refText) {
+            const body      = document.getElementById('articleBody');
+            const refBanner = document.getElementById('refBanner');
+            if (refBanner) refBanner.style.display = 'flex';
+
+            function escHtml(str) {
+                const d = document.createElement('div');
+                d.textContent = str;
+                return d.innerHTML;
+            }
+
+            let highlighted = false;
+
+            body.querySelectorAll('p').forEach(p => {
+                if (highlighted) return;
+                const idx = p.textContent.indexOf(refText);
+                if (idx !== -1) {
+                    highlighted = true;
+                    p.innerHTML = escHtml(p.textContent.substring(0, idx)) +
+                        '<mark class="passage-highlight" id="refPassageMark">' +
+                        escHtml(p.textContent.substring(idx, idx + refText.length)) +
+                        '</mark>' + escHtml(p.textContent.substring(idx + refText.length));
+                }
+            });
+
+            if (!highlighted && refText.length > 20) {
+                const snippet = refText.substring(0, 60).trim();
+                body.querySelectorAll('p').forEach(p => {
+                    if (highlighted) return;
+                    if (p.textContent.includes(snippet)) {
+                        highlighted = true;
+                        p.innerHTML = '<mark class="passage-highlight" id="refPassageMark">' + p.innerHTML + '</mark>';
+                    }
+                });
+            }
+
+            setTimeout(() => {
+                const mark = document.getElementById('refPassageMark');
+                if (mark) mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 400);
+        }
+    </script>
+{% include "interface/theme_panel.html" %}
+</body>
+</html>

@@ -14,15 +14,16 @@
             margin-bottom: 0.3rem;
         }       
 
+        /* theme variables — set by theme.js */
         :root {
-            --bg-primary:       #080002;
-            --bg-secondary:     #100005;
-            --accent-primary:   #dc143c;
-            --accent-secondary: #00e5ff;
-            --accent-faint:     #003540;
-            --text-primary:     #dc143c;
-            --text-secondary:   #00e5ff;
-            --text-placeholder: #003540;
+            --bg-primary:       var(--t-bg,       #080002);
+            --bg-secondary:     var(--t-bg2,      #100005);
+            --accent-primary:   var(--t-accent,   #dc143c);
+            --accent-secondary: var(--t-accent2,  #00e5ff);
+            --accent-faint:     var(--t-surface,  #003540);
+            --text-primary:     var(--t-accent,   #dc143c);
+            --text-secondary:   var(--t-accent2,  #00e5ff);
+            --text-placeholder: var(--t-text-mute,#003540);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -958,6 +959,7 @@
             margin-bottom: 1rem;
         }
     </style>
+    <script src="{% static 'interface/theme.js' %}"></script>
 </head>
 <body>
 
@@ -966,7 +968,7 @@
         <span class="navbar-logo">NET-1</span>
         <div class="navbar-right">
             <div class="user-info">> USER: <span>NET1ADMIN</span></div>
-            <button class="btn-settings" title="Settings">⚙</button>
+            <button class="btn-settings" title="Settings" onclick="openThemePanel()">⚙</button>
             <form method="POST" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button class="btn-logout" type="submit">[ LOGOUT ]</button>
@@ -991,10 +993,10 @@
                             <div class="c-card-desc">Browse & search wikipedia pages</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
-                        <div class="c-card" data-index="1">
+                        <div class="c-card" data-index="1" data-url="{% url 'notes_deck' %}">
                             <div class="c-card-tag">02</div>
-                            <div class="c-card-title">TIMELINE</div>
-                            <div class="c-card-desc">View page change history</div>
+                            <div class="c-card-title">NOTES</div>
+                            <div class="c-card-desc">Create & share notes with the network</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
                         <div class="c-card" data-index="2">
@@ -1158,6 +1160,18 @@
         });
 
         updateCarousel();
+
+        // navigate when clicking the centre card
+        cards.forEach((card, i) => {
+            card.addEventListener('click', () => {
+                if (card.classList.contains('pos-center')) {
+                    const url = card.dataset.url;
+                    if (url) window.location.href = url;
+                } else {
+                    goTo(i);
+                }
+            });
+        });
     </script>
 
     <!-- prompt + conversation + history + modals script -->
@@ -1607,5 +1621,6 @@
         setInterval(updateSystemStatus, 30000);
     </script>
 
+{% include "interface/theme_panel.html" %}
 </body>
 </html>

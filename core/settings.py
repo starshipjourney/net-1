@@ -24,8 +24,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'interface',
     'data_master',
-    'system_logger'
+    'system_logger',
+    'notes'
 ]
+
+MEDIA_URL  = '/media/'
+MEDIA_ROOT = BASE_DIR.parent / 'data' / 'media'
+
+STATIC_URL  = '/static/'
+STATIC_ROOT = BASE_DIR.parent / 'data' / 'static'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

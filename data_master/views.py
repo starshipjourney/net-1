@@ -83,9 +83,13 @@ def search_view(request):
 @login_required(login_url='login')
 def article_view(request, slug):
     try:
-        doc = Document.objects.get(slug=slug, is_active=True)
+        doc      = Document.objects.get(slug=slug, is_active=True)
+        ref_text = request.GET.get('ref', '').strip()
         from django.shortcuts import render
-        return render(request, 'data_master/article.html', {'article': doc})
+        return render(request, 'data_master/article.html', {
+            'article' : doc,
+            'ref_text': ref_text,
+        })
     except Document.DoesNotExist:
         from django.http import Http404
         raise Http404

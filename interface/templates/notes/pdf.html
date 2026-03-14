@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            margin: 2cm 2.5cm;
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9pt;
+                color: #666;
+                font-family: 'Courier New', monospace;
+            }
+        }
+
+        body {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 11pt;
+            line-height: 1.7;
+            color: #1a1a1a;
+        }
+
+        /* header */
+        .pdf-header {
+            border-bottom: 2px solid #f59e0b;
+            padding-bottom: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pdf-title {
+            font-size: 22pt;
+            font-weight: bold;
+            color: #0d1117;
+            margin-bottom: 0.4rem;
+            line-height: 1.2;
+        }
+
+        .pdf-meta {
+            font-family: 'Courier New', monospace;
+            font-size: 8pt;
+            color: #555;
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .pdf-tags {
+            margin-top: 0.4rem;
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .pdf-tag {
+            font-family: 'Courier New', monospace;
+            font-size: 7.5pt;
+            padding: 1pt 6pt;
+            border-radius: 8pt;
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        /* body content */
+        .pdf-body {
+            margin-top: 1rem;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .pdf-body p       { margin-bottom: 0.7em; }
+        .pdf-body h1      { font-size: 16pt; margin: 1.2em 0 0.4em; }
+        .pdf-body h2      { font-size: 13pt; margin: 1em 0 0.4em; }
+        .pdf-body h3      { font-size: 11pt; margin: 0.8em 0 0.3em; }
+        .pdf-body ul,
+        .pdf-body ol      { padding-left: 1.5em; margin-bottom: 0.7em; }
+        .pdf-body li      { margin-bottom: 0.2em; }
+        .pdf-body blockquote {
+            border-left: 3pt solid #f59e0b;
+            padding-left: 0.8em;
+            color: #444;
+            font-style: italic;
+            margin: 0.8em 0;
+        }
+        .pdf-body pre,
+        .pdf-body code {
+            font-family: 'Courier New', monospace;
+            font-size: 9pt;
+            background: #f5f5f5;
+            border: 1pt solid #ddd;
+            border-radius: 3pt;
+        }
+        .pdf-body pre  { padding: 0.6em; display: block; white-space: pre-wrap; }
+        .pdf-body code { padding: 1pt 4pt; }
+        /* images — use saved inline width, cap at page width */
+        .pdf-body img  {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* floated images */
+        .pdf-body img.img-float-left {
+            float: left;
+            margin: 0 12pt 6pt 0;
+            max-width: 45%;
+        }
+
+        .pdf-body img.img-float-right {
+            float: right;
+            margin: 0 0 6pt 12pt;
+            max-width: 45%;
+        }
+
+        .pdf-body::after {
+            content: '';
+            display: table;
+            clear: both;
+        }
+
+        /* reference blocks */
+        .note-ref-block {
+            border-left: 3pt solid #f59e0b;
+            background: #fafafa;
+            padding: 0.6em 0.8em;
+            margin: 0.8em 0;
+            border-radius: 0 4pt 4pt 0;
+        }
+
+        .ref-block-header {
+            font-family: 'Courier New', monospace;
+            font-size: 8pt;
+            color: #666;
+            margin-bottom: 0.3em;
+        }
+
+        .ref-block-title {
+            font-weight: bold;
+            font-size: 10pt;
+            color: #1a1a1a;
+            margin-bottom: 0.3em;
+        }
+
+        .ref-block-text {
+            font-size: 10pt;
+            font-style: italic;
+            color: #333;
+        }
+
+        /* tables — fit page, no cropping */
+        .pdf-body table,
+        .note-table-block table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 0.8em 0;
+            font-size: 9pt;
+            table-layout: fixed;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .pdf-body td,
+        .note-table-block td {
+            border: 1pt solid #ccc;
+            padding: 4pt 6pt;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 0;
+        }
+
+        .pdf-body tr:first-child td,
+        .note-table-block tr:first-child td {
+            background: #f0f0f0;
+            font-weight: bold;
+            border-bottom: 2pt solid #f59e0b;
+        }
+
+        /* wide tables — allow horizontal scroll in PDF via smaller font */
+        .note-table-block {
+            overflow-x: visible;
+        }
+
+        /* footer */
+        .pdf-footer {
+            margin-top: 2rem;
+            padding-top: 0.6rem;
+            border-top: 1pt solid #ddd;
+            font-family: 'Courier New', monospace;
+            font-size: 8pt;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="pdf-header">
+        <div class="pdf-title">{{ note.title }}</div>
+        <div class="pdf-meta">
+            <span>BY {{ note.author.username|upper }}</span>
+            <span>{{ note.created_at|date:"d M Y" }}</span>
+            {% if note.updated_at != note.created_at %}
+                <span>UPDATED {{ note.updated_at|date:"d M Y" }}</span>
+            {% endif %}
+            <span>{{ note.visibility|upper }}</span>
+        </div>
+        {% if note.tags.all %}
+        <div class="pdf-tags">
+            {% for tag in note.tags.all %}
+                <span class="pdf-tag">{{ tag.icon }} {{ tag.name }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="pdf-body">
+        {{ note.body_html|safe }}
+    </div>
+
+    <div class="pdf-footer">
+        NET-1 // NOTES EXPORT — {{ note.title }} — {{ note.created_at|date:"d M Y" }}
+    </div>
+</body>
+</html>

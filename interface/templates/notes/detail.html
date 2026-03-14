@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <title>NET-1 // {{ note.title }}</title>
+    <style>
+        /* theme variables — set by theme.js */
+        :root {
+            --n-bg:        var(--t-bg,        #0d1117);
+            --n-surface:   var(--t-surface,   #161b22);
+            --n-border:    var(--t-border,    #21262d);
+            --n-border-hi: var(--t-border-hi, #30363d);
+            --n-amber:     var(--t-accent,    #f59e0b);
+            --n-amber-dim: var(--t-accent-dim,#92400e);
+            --n-text:      var(--t-text,      #e6edf3);
+            --n-text-dim:  var(--t-text-dim,  #8b949e);
+            --n-text-mute: var(--t-text-mute, #30363d);
+            --n-green:     var(--t-green,     #3fb950);
+            --n-blue:      var(--t-blue,      #58a6ff);
+            --n-red:       var(--t-red,       #f85149);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--n-bg);
+            color: var(--n-text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── navbar ── */
+        .navbar {
+            background: var(--n-surface);
+            border-bottom: 1px solid var(--n-border);
+            padding: 0 1.5rem;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-left { display: flex; align-items: center; gap: 0.8rem; }
+
+        .nav-logo {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            font-weight: bold;
+            letter-spacing: 0.3rem;
+            color: var(--n-amber);
+            text-decoration: none;
+            text-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .nav-sep   { color: var(--n-border-hi); }
+        .nav-crumb {
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.12rem;
+            color: var(--n-text-dim);
+            text-decoration: none;
+        }
+        .nav-crumb:hover { color: var(--n-amber); }
+
+        .navbar-right { display: flex; gap: 0.5rem; align-items: center; }
+
+        .btn {
+            font-family: 'Courier New', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.1rem;
+            padding: 0.38rem 0.8rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .btn-primary {
+            background: var(--n-amber);
+            border: none;
+            color: #0d1117;
+            font-weight: bold;
+        }
+
+        .btn-primary:hover { background: #fbbf24; }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--n-border-hi);
+            color: var(--n-text-dim);
+        }
+
+        .btn-ghost:hover { border-color: var(--n-amber); color: var(--n-amber); }
+
+        .btn-danger {
+            background: transparent;
+            border: 1px solid var(--n-border-hi);
+            color: var(--n-text-dim);
+        }
+
+        .btn-danger:hover { border-color: var(--n-red); color: var(--n-red); }
+
+        /* ── reading progress ── */
+        .reading-progress {
+            height: 2px;
+            background: var(--n-border);
+            position: sticky;
+            top: 52px;
+            z-index: 99;
+        }
+
+        .reading-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--n-amber);
+            transition: width 0.1s ease;
+        }
+
+        /* ── content layout ── */
+        .content-layout {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ── note content ── */
+        .note-content {
+            flex: 1;
+            padding: 2.5rem 3rem 4rem;
+            min-width: 0;
+            max-width: 780px;
+            overflow-y: auto;
+            height: 100%;
+            scrollbar-width: thin;
+            scrollbar-color: var(--n-border-hi) transparent;
+        }
+
+        .note-content::-webkit-scrollbar       { width: 5px; }
+        .note-content::-webkit-scrollbar-track { background: transparent; }
+        .note-content::-webkit-scrollbar-thumb { background: var(--n-border-hi); border-radius: 3px; }
+        .note-content::-webkit-scrollbar-thumb:hover { background: var(--n-amber); }
+
+        .note-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--n-text);
+            line-height: 1.25;
+            margin-bottom: 1rem;
+        }
+
+        .note-byline {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--n-border);
+        }
+
+        .byline-author {
+            font-size: 0.82rem;
+            color: var(--n-text-dim);
+        }
+
+        .byline-author strong { color: var(--n-amber); }
+
+        .byline-date {
+            font-family: 'Courier New', monospace;
+            font-size: 0.62rem;
+            color: var(--n-text-mute);
+            letter-spacing: 0.08rem;
+        }
+
+        .byline-tags {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .tag-badge {
+            font-size: 0.68rem;
+            padding: 0.15rem 0.55rem;
+            border-radius: 12px;
+        }
+
+        .vis-badge {
+            font-family: 'Courier New', monospace;
+            font-size: 0.58rem;
+            letter-spacing: 0.1rem;
+            padding: 0.18rem 0.5rem;
+            border-radius: 3px;
+            margin-left: auto;
+        }
+
+        .vis-badge.public  { background: rgba(63,185,80,0.12);  color: var(--n-green); }
+        .vis-badge.shared  { background: rgba(88,166,255,0.12); color: var(--n-blue);  }
+        .vis-badge.private { background: rgba(139,148,158,0.1); color: var(--n-text-mute); }
+
+        /* ── Quill rendered content ── */
+        .note-body {
+            font-size: 0.95rem;
+            line-height: 1.85;
+            color: var(--n-text);
+            overflow-wrap: break-word;
+            word-break: break-word;
+            min-width: 0;
+        }
+
+        .note-body .ql-align-center  { text-align: center;  }
+        .note-body .ql-align-right   { text-align: right;   }
+        .note-body .ql-align-justify { text-align: justify; }
+        .note-body h1 { font-size: 1.6rem; margin: 1.5rem 0 0.5rem; color: var(--n-text); }
+        .note-body h2 { font-size: 1.25rem; margin: 1.3rem 0 0.4rem; color: var(--n-text); }
+        .note-body h3 { font-size: 1rem; margin: 1.1rem 0 0.3rem; color: var(--n-text-dim); }
+        .note-body p  { margin-bottom: 0.9em; }
+        .note-body ul, .note-body ol { padding-left: 1.5rem; margin-bottom: 0.9em; }
+        .note-body li  { margin-bottom: 0.25em; }
+        .note-body blockquote {
+            border-left: 3px solid var(--n-amber);
+            padding-left: 1rem;
+            color: var(--n-text-dim);
+            margin: 1em 0;
+            font-style: italic;
+        }
+        .note-body pre {
+            background: var(--n-surface);
+            border: 1px solid var(--n-border);
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            color: var(--n-text);
+            margin: 1em 0;
+        }
+        .note-body code {
+            background: var(--n-surface);
+            color: var(--n-amber);
+            padding: 0.1em 0.35em;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+        .note-body img {
+            max-width: 100%;
+            border-radius: 4px;
+            margin: 0.3em 0;
+            border: 1px solid var(--n-border);
+        }
+
+        .note-body img.img-float-left {
+            float: left;
+            margin: 0.3rem 1.2rem 0.5rem 0;
+        }
+
+        .note-body img.img-float-right {
+            float: right;
+            margin: 0.3rem 0 0.5rem 1.2rem;
+        }
+
+        .note-body::after {
+            content: '';
+            display: table;
+            clear: both;
+        }
+        /* table block */
+        .note-body .note-table-block {
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        .note-body .note-table-block table,
+        .note-body table {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: auto;
+        }
+        .note-body .note-table-block td,
+        .note-body table td {
+            border: 1px solid #30363d;
+            padding: 7px 10px;
+            font-size: 0.88rem;
+            color: #e6edf3;
+            min-width: 80px;
+            vertical-align: top;
+        }
+        .note-body .note-table-block tr:first-child td,
+        .note-body table tr:first-child td {
+            background: #161b22;
+            font-weight: 600;
+            color: #f59e0b;
+            border-bottom: 2px solid #f59e0b;
+        }
+        .note-body .note-table-block tr:nth-child(even):not(:first-child) td,
+        .note-body table tr:nth-child(even):not(:first-child) td {
+            background: rgba(255,255,255,0.025);
+        }
+        /* highlighted text */
+        .note-body [style*="background"] {
+            padding: 0.05em 0.2em;
+            border-radius: 3px;
+        }
+
+        /* highlight matched passage in linked article */
+        .ref-passage-highlight {
+            background: rgba(245,158,11,0.3);
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+
+        /* reference block */
+        .note-ref-block {
+            border-left: 3px solid var(--n-amber);
+            background: rgba(245,158,11,0.05);
+            border-radius: 0 6px 6px 0;
+            padding: 0.8rem 1rem;
+            margin: 1rem 0;
+        }
+
+        .ref-block-header {
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.1rem;
+            color: var(--n-amber);
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ref-block-title {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--n-text);
+            margin-bottom: 0.4rem;
+        }
+
+        .ref-block-title a {
+            color: var(--n-amber);
+            text-decoration: none;
+        }
+
+        .ref-block-title a:hover { text-decoration: underline; }
+
+        .ref-block-text {
+            font-size: 0.85rem;
+            color: var(--n-text-dim);
+            font-style: italic;
+            line-height: 1.6;
+            border-top: 1px solid rgba(245,158,11,0.15);
+            padding-top: 0.4rem;
+            margin-top: 0.4rem;
+        }
+        .note-body a { color: var(--n-blue); }
+
+        /* ── pin button ── */
+        .pin-btn {
+            background: transparent;
+            border: 1px solid var(--n-border);
+            color: var(--n-text-mute);
+            font-family: 'Courier New', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.1rem;
+            padding: 0.35rem 0.7rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .pin-btn:hover, .pin-btn.active {
+            border-color: var(--n-amber);
+            color: var(--n-amber);
+        }
+
+        /* ── sidebar ── */
+        .note-sidebar {
+            width: 260px;
+            padding: 2rem 1.2rem;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+            border-left: 1px solid var(--n-border);
+            overflow-y: auto;
+            height: 100%;
+            scrollbar-width: thin;
+            scrollbar-color: var(--n-border-hi) transparent;
+        }
+
+        .sidebar-title {
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.2rem;
+            color: var(--n-text-dim);
+            margin-bottom: 0.7rem;
+        }
+
+        /* sharing */
+        .shared-user-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--n-border);
+            font-size: 0.78rem;
+            color: var(--n-text-dim);
+        }
+
+        .shared-user-row form { display: inline; }
+
+        .btn-remove {
+            background: transparent;
+            border: none;
+            color: var(--n-text-mute);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0.1rem 0.3rem;
+            transition: color 0.15s;
+        }
+
+        .btn-remove:hover { color: var(--n-red); }
+
+        .share-form {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.6rem;
+        }
+
+        .share-input,
+        .share-select {
+            flex: 1;
+            background: var(--n-bg);
+            border: 1px solid var(--n-border);
+            color: var(--n-text);
+            font-size: 0.78rem;
+            padding: 0.38rem 0.6rem;
+            outline: none;
+            border-radius: 4px;
+            transition: border-color 0.2s;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b949e'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.6rem center;
+            padding-right: 1.8rem;
+        }
+
+        .share-select option {
+            background: var(--n-surface);
+            color: var(--n-text);
+        }
+
+        .share-input:focus,
+        .share-select:focus { border-color: var(--n-amber); }
+        .share-input::placeholder { color: var(--n-text-mute); }
+
+        .btn-share-add {
+            background: var(--n-amber);
+            border: none;
+            color: #0d1117;
+            font-family: 'Courier New', monospace;
+            font-size: 0.62rem;
+            font-weight: bold;
+            padding: 0.38rem 0.7rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .btn-share-add:hover { background: #fbbf24; }
+
+        /* visibility quick-change */
+        .vis-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .vis-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--n-text-dim);
+            padding: 0.4rem 0.6rem;
+            border: 1px solid var(--n-border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .vis-option:hover          { border-color: var(--n-amber); }
+        .vis-option input          { accent-color: var(--n-amber); cursor: pointer; }
+
+        /* ── comments ── */
+        .comments-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--n-border);
+        }
+
+        .comments-title {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.2rem;
+            color: var(--n-text-dim);
+            margin-bottom: 1.2rem;
+        }
+
+        .comment {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--n-amber);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #0d1117;
+            flex-shrink: 0;
+        }
+
+        .comment-body {
+            flex: 1;
+            background: var(--n-surface);
+            border: 1px solid var(--n-border);
+            border-radius: 6px;
+            padding: 0.7rem 0.9rem;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .comment-author {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--n-amber);
+        }
+
+        .comment-date {
+            font-family: 'Courier New', monospace;
+            font-size: 0.58rem;
+            color: var(--n-text-mute);
+        }
+
+        .comment-text {
+            font-size: 0.82rem;
+            color: var(--n-text-dim);
+            line-height: 1.6;
+        }
+
+        /* comment form */
+        .comment-form {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1.2rem;
+        }
+
+        .comment-input {
+            flex: 1;
+            background: var(--n-surface);
+            border: 1px solid var(--n-border);
+            border-radius: 6px;
+            color: var(--n-text);
+            font-family: -apple-system, sans-serif;
+            font-size: 0.85rem;
+            padding: 0.7rem 0.9rem;
+            outline: none;
+            resize: none;
+            min-height: 42px;
+            max-height: 120px;
+            transition: border-color 0.2s;
+        }
+
+        .comment-input:focus { border-color: var(--n-amber); }
+        .comment-input::placeholder { color: var(--n-text-mute); }
+
+        /* personal tags sidebar (non-owner) */
+        .personal-tag-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.68rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 12px;
+            background: rgba(245,158,11,0.12);
+            color: var(--n-amber);
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+
+        .personal-tag-badge:hover { border-color: currentColor; }
+
+        .personal-tag-badge .remove-x {
+            font-size: 0.6rem;
+            opacity: 0.6;
+            margin-left: 0.1rem;
+        }
+
+        .personal-tag-badge .remove-x:hover { opacity: 1; }
+
+        .tag-assign-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-top: 0.5rem;
+        }
+
+        .tag-assign-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.68rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 12px;
+            background: transparent;
+            color: var(--n-text-mute);
+            border: 1px dashed var(--n-border-hi);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .tag-assign-btn:hover { border-color: var(--n-amber); color: var(--n-amber); }
+        .tag-assign-btn.assigned { background: rgba(245,158,11,0.1); color: var(--n-amber); border-style: solid; border-color: var(--n-amber); }
+
+        /* delete confirm */
+        #deleteConfirm {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #deleteConfirm.active { display: flex; }
+
+        .confirm-box {
+            background: var(--n-surface);
+            border: 1px solid var(--n-red);
+            border-radius: 8px;
+            padding: 1.5rem;
+            width: 320px;
+            text-align: center;
+        }
+
+        .confirm-box h3 {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.15rem;
+            color: var(--n-red);
+            margin-bottom: 0.6rem;
+        }
+
+        .confirm-box p {
+            font-size: 0.8rem;
+            color: var(--n-text-dim);
+            margin-bottom: 1.2rem;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .btn-confirm-delete {
+            background: var(--n-red);
+            border: none;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.1rem;
+            padding: 0.4rem 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+    </style>
+    <script src="{% static 'interface/theme.js' %}"></script>
+</head>
+<body>
+
+    <!-- reading progress -->
+    <div class="reading-progress">
+        <div class="reading-progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <a href="{% url 'dashboard' %}" class="nav-logo">NET-1</a>
+            <span class="nav-sep">/</span>
+            <a href="{% url 'notes_deck' %}" class="nav-crumb">NOTES</a>
+            <span class="nav-sep">/</span>
+            <span class="nav-crumb" style="color: var(--n-text);">{{ note.title|truncatechars:30 }}</span>
+        </div>
+        <div class="navbar-right">
+            <button class="pin-btn {% if note.pinned %}active{% endif %}"
+                    id="pinBtn" onclick="togglePin()">
+                {% if note.pinned %}📌 PINNED{% else %}📌 PIN{% endif %}
+            </button>
+            <a href="{% url 'note_pdf' note.id %}" class="btn btn-ghost" title="Export PDF">
+                ⬇ PDF
+            </a>
+            {% if is_owner %}
+                <a href="{% url 'note_edit' note.id %}" class="btn btn-primary">EDIT</a>
+                <button class="btn btn-danger"
+                        onclick="document.getElementById('deleteConfirm').classList.add('active')">
+                    DELETE
+                </button>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="content-layout">
+
+        <!-- note body -->
+        <article class="note-content" id="noteScroll">
+            <h1 class="note-title">{{ note.title }}</h1>
+
+            <div class="note-byline">
+                <span class="byline-author">by <strong>{{ note.author.username }}</strong></span>
+                <span class="byline-date">
+                    CREATED {{ note.created_at|date:"d M Y" }}
+                    {% if note.updated_at != note.created_at %}
+                        · UPDATED {{ note.updated_at|date:"d M Y" }}
+                    {% endif %}
+                </span>
+                <div class="byline-tags">
+                    {% for tag in note.tags.all %}
+                        <span class="tag-badge"
+                              style="--c: {{ tag.color }}; background: color-mix(in srgb, var(--c) 15%, transparent); color: var(--c);">
+                            {{ tag.name }}
+                        </span>
+                    {% endfor %}
+                </div>
+                <span class="vis-badge {{ note.visibility }}">
+                    {% if note.visibility == 'public' %}◉ PUBLIC
+                    {% elif note.visibility == 'shared' %}◎ SHARED
+                    {% else %}○ PRIVATE{% endif %}
+                </span>
+            </div>
+
+            <div class="note-body">
+                {{ note.body_html|safe }}
+            </div>
+
+            <!-- comments -->
+            <div class="comments-section">
+                <div class="comments-title">
+                    // COMMENTS ({{ note.comments.count }})
+                </div>
+
+                {% for comment in comments %}
+                <div class="comment">
+                    <div class="comment-avatar">
+                        {{ comment.author.username|first|upper }}
+                    </div>
+                    <div class="comment-body">
+                        <div class="comment-header">
+                            <span class="comment-author">{{ comment.author.username }}</span>
+                            <span class="comment-date">{{ comment.created_at|date:"d M Y, H:i" }}</span>
+                        </div>
+                        <div class="comment-text">{{ comment.body }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                    <div style="font-size: 0.8rem; color: var(--n-text-mute); margin-bottom: 1rem;">
+                        No comments yet.
+                    </div>
+                {% endfor %}
+
+                <!-- add comment -->
+                <form method="POST" action="{% url 'note_comment' note.id %}" class="comment-form">
+                    {% csrf_token %}
+                    <div class="comment-avatar" style="align-self: flex-end;">
+                        {{ request.user.username|first|upper }}
+                    </div>
+                    <textarea class="comment-input" name="body"
+                              placeholder="Add a comment..."
+                              rows="1"
+                              onInput="this.style.height='auto'; this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button type="submit" class="btn btn-primary" style="align-self: flex-end;">
+                        POST
+                    </button>
+                </form>
+            </div>
+        </article>
+
+        <!-- sidebar — shown to all users -->
+        <aside class="note-sidebar">
+
+            {% if is_owner %}
+            <!-- owner: visibility controls -->
+            <div>
+                <div class="sidebar-title">// VISIBILITY</div>
+                <form method="POST" action="{% url 'note_share' note.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="set_visibility">
+                    <div class="vis-selector">
+                        <label class="vis-option">
+                            <input type="radio" name="visibility" value="private"
+                                   {% if note.visibility == 'private' %}checked{% endif %}
+                                   onchange="this.form.submit()">
+                            ○ Private
+                        </label>
+                        <label class="vis-option">
+                            <input type="radio" name="visibility" value="shared"
+                                   {% if note.visibility == 'shared' %}checked{% endif %}
+                                   onchange="this.form.submit()">
+                            ◎ Shared
+                        </label>
+                        <label class="vis-option">
+                            <input type="radio" name="visibility" value="public"
+                                   {% if note.visibility == 'public' %}checked{% endif %}
+                                   onchange="this.form.submit()">
+                            ◉ Public
+                        </label>
+                    </div>
+                </form>
+            </div>
+
+            <!-- owner: share with users -->
+            <div>
+                <div class="sidebar-title">// SHARED WITH</div>
+                {% for share in shared_with %}
+                <div class="shared-user-row">
+                    <span>{{ share.shared_with.username }}</span>
+                    <form method="POST" action="{% url 'note_share' note.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action"  value="remove">
+                        <input type="hidden" name="user_id" value="{{ share.shared_with.id }}">
+                        <button type="submit" class="btn-remove" title="Remove">✕</button>
+                    </form>
+                </div>
+                {% empty %}
+                    <div style="font-size: 0.72rem; color: var(--n-text-mute);">
+                        Not shared with anyone.
+                    </div>
+                {% endfor %}
+                {% if all_users %}
+                <form method="POST" action="{% url 'note_share' note.id %}" class="share-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add">
+                    <select class="share-select" name="username">
+                        <option value="" disabled selected>Select user...</option>
+                        {% for u in all_users %}
+                            <option value="{{ u.username }}">{{ u.username }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-share-add">ADD</button>
+                </form>
+                {% else %}
+                    <div style="font-size:0.72rem; color:var(--n-text-mute); margin-top:0.5rem;">
+                        All users already have access.
+                    </div>
+                {% endif %}
+            </div>
+
+            {% else %}
+            <!-- non-owner: personal tags -->
+            <div>
+                <div class="sidebar-title">// MY TAGS</div>
+                <div style="font-size: 0.72rem; color: var(--n-text-mute); margin-bottom: 0.7rem;">
+                    Tag this note for your own organisation. Only visible to you.
+                </div>
+
+                <!-- currently assigned personal tags -->
+                <div id="personalTagsDisplay">
+                    {% for pt in personal_tags %}
+                        <span class="personal-tag-badge"
+                              data-color="{{ pt.tag.color }}"
+                              data-tag-id="{{ pt.tag.id }}"
+                              id="ptbadge-{{ pt.tag.id }}">
+                            {{ pt.tag.icon }} {{ pt.tag.name }}
+                            <span class="remove-x" data-remove-tag="{{ pt.tag.id }}">✕</span>
+                        </span>
+                    {% endfor %}
+                </div>
+
+                <!-- available tags to assign -->
+                {% if user_tags %}
+                    <div style="font-family:'Courier New',monospace; font-size:0.58rem; color:var(--n-text-mute); letter-spacing:0.1rem; margin: 0.8rem 0 0.4rem;">
+                        ADD TAG
+                    </div>
+                    <div class="tag-assign-row" id="tagAssignRow">
+                        {% for tag in user_tags %}
+                            <button class="tag-assign-btn {% if tag.id in assigned_tag_ids %}assigned{% endif %}"
+                                    id="tagbtn-{{ tag.id }}"
+                                    data-tag-id="{{ tag.id }}"
+                                    data-color="{{ tag.color }}"
+                                    data-icon="{{ tag.icon }}"
+                                    data-name="{{ tag.name }}"
+                                    onclick="togglePersonalTag(this)">
+                                {{ tag.icon }} {{ tag.name }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="font-size: 0.72rem; color: var(--n-text-mute); margin-top: 0.5rem;">
+                        You have no tags yet. Create some from the
+                        <a href="{% url 'notes_deck' %}" style="color: var(--n-amber);">notes deck</a>.
+                    </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        </aside>
+    </div>
+
+    <!-- delete confirm -->
+    <div id="deleteConfirm">
+        <div class="confirm-box">
+            <h3>// DELETE NOTE</h3>
+            <p>This cannot be undone. Are you sure?</p>
+            <div class="confirm-actions">
+                <button class="btn btn-ghost"
+                        onclick="document.getElementById('deleteConfirm').classList.remove('active')">
+                    CANCEL
+                </button>
+                <form method="POST" action="{% url 'note_delete' note.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-confirm-delete">DELETE</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // reading progress bar — tracks note-content scroll panel
+        const noteContent = document.querySelector('.note-content');
+        noteContent.addEventListener('scroll', () => {
+            const scrollable = noteContent.scrollHeight - noteContent.clientHeight;
+            const progress   = scrollable > 0 ? (noteContent.scrollTop / scrollable) * 100 : 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        });
+
+        // pin toggle
+        function togglePin() {
+            fetch('{% url "note_pin" note.id %}', {
+                method : 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            })
+            .then(r => r.json())
+            .then(data => {
+                const btn = document.getElementById('pinBtn');
+                if (data.pinned) {
+                    btn.textContent = '📌 PINNED';
+                    btn.classList.add('active');
+                } else {
+                    btn.textContent = '📌 PIN';
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // close delete modal on backdrop
+        document.getElementById('deleteConfirm').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+
+        // ref links already have ?ref=passage in their href
+        // clicking opens the article page which will auto-scroll and highlight the passage
+        // no JS needed — links work natively via <a target="_blank">
+
+        // ── personal tag helpers ──────────────────────────
+        function hexToRgb(hex) {
+            return {
+                r: parseInt(hex.slice(1,3),16),
+                g: parseInt(hex.slice(3,5),16),
+                b: parseInt(hex.slice(5,7),16),
+            };
+        }
+
+        function applyBadgeColor(el, hex) {
+            if (!hex) return;
+            const {r,g,b} = hexToRgb(hex);
+            el.style.color      = hex;
+            el.style.background = 'rgba('+r+','+g+','+b+',0.12)';
+        }
+
+        // apply colors on load
+        document.querySelectorAll('.personal-tag-badge[data-color]').forEach(el => {
+            applyBadgeColor(el, el.dataset.color);
+        });
+
+        // event delegation for remove-x buttons (works for dynamically added ones too)
+        document.getElementById('personalTagsDisplay').addEventListener('click', function(e) {
+            const removeBtn = e.target.closest('[data-remove-tag]');
+            if (!removeBtn) return;
+            const tagId = removeBtn.dataset.removeTag;
+            const btn   = document.getElementById('tagbtn-' + tagId);
+            if (btn) togglePersonalTag(btn);
+        });
+        document.querySelectorAll('.tag-assign-btn[data-color]').forEach(el => {
+            if (el.classList.contains('assigned')) {
+                applyBadgeColor(el, el.dataset.color);
+                el.style.borderColor = el.dataset.color;
+            }
+        });
+
+        function togglePersonalTag(btn) {
+            const tagId    = btn.dataset.tagId;
+            const assigned = btn.classList.contains('assigned');
+            const action   = assigned ? 'remove' : 'add';
+
+            const fd = new FormData();
+            fd.append('tag_id', tagId);
+            fd.append('action', action);
+            fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            fetch('{% url "note_personal_tags" note.id %}', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) { alert(data.error); return; }
+
+                    // update assign button state
+                    btn.classList.toggle('assigned', !assigned);
+                    if (!assigned) {
+                        applyBadgeColor(btn, btn.dataset.color);
+                        btn.style.borderColor = btn.dataset.color;
+                    } else {
+                        btn.style.color      = '';
+                        btn.style.background = '';
+                        btn.style.borderColor= '';
+                    }
+
+                    // rebuild badge display
+                    const display = document.getElementById('personalTagsDisplay');
+                    display.innerHTML = '';
+                    data.tags.forEach(tag => {
+                        const span = document.createElement('span');
+                        span.className     = 'personal-tag-badge';
+                        span.dataset.color = tag.color;
+                        span.dataset.tagId = tag.id;
+                        span.id            = 'ptbadge-' + tag.id;
+                        span.innerHTML     = tag.icon + ' ' + tag.name +
+                            ' <span class="remove-x" data-remove-tag="' + tag.id + '">✕</span>';
+                        applyBadgeColor(span, tag.color);
+                        display.appendChild(span);
+                    });
+                });
+        }
+
+        function removePersonalTag(tagId) {
+            const btn = document.getElementById('tagbtn-' + tagId);
+            if (btn) togglePersonalTag(btn);
+        }
+        // (kept for backwards compat but remove-x now uses event delegation above)
+    </script>
+{% include "interface/theme_panel.html" %}
+</body>
+</html>
