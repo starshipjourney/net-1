@@ -2390,7 +2390,15 @@ function renderRefResults(results) {
     results.forEach(doc => {
         const item     = document.createElement('div');
         item.className = 'ref-result-item';
-        const badge    = doc.source_type === 'gutenberg' ? '📖 GUTENBERG' : '📄 WIKIPEDIA';
+        const badgeMap = {
+                            'gutenberg' : '📖 GUTENBERG',
+                            'wikibooks' : '📚 WIKIBOOKS',
+                            'wikivoyage': '🗺️ WIKIVOYAGE',
+                            'ifixit'    : '🔧 IFIXIT',
+                            'arxiv'     : '🔬 ARXIV',
+                            'wikipedia' : '📄 WIKIPEDIA',
+                        };
+                        const badge = badgeMap[doc.source_type] || '📄 WIKIPEDIA';
         const author   = doc.author ? ' — ' + doc.author : '';
         item.innerHTML = `
             <div class="ref-result-title">${escHtml(doc.title)}</div>
@@ -2456,7 +2464,15 @@ function insertRefBlock() {
     if (!refSelectedDoc || !refTargetBlock) return;
 
     const passage   = refEl('refPassage').value.trim();
-    const badge     = refSelectedDoc.source_type === 'gutenberg' ? '📖 GUTENBERG' : '📄 WIKIPEDIA';
+    const badgeMap2 = {
+                    'gutenberg' : '📖 GUTENBERG',
+                    'wikibooks' : '📚 WIKIBOOKS',
+                    'wikivoyage': '🗺️ WIKIVOYAGE',
+                    'ifixit'    : '🔧 IFIXIT',
+                    'arxiv'     : '🔬 ARXIV',
+                    'wikipedia' : '📄 WIKIPEDIA',
+                };
+                const badge = badgeMap2[refSelectedDoc.source_type] || '📄 WIKIPEDIA';
     const authorStr = refSelectedDoc.author ? ' · ' + refSelectedDoc.author : '';
     const url       = '/data-master/article/' + refSelectedDoc.slug + '/';
 

@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <title>NET-1 // PDF LIBRARY</title>
+    <script src="{% static 'interface/theme.js' %}"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--t-bg);
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── NAVBAR ─────────────────────────────────── */
+        .navbar {
+            width: 100%;
+            background: var(--t-bg2);
+            border-bottom: 1px solid var(--t-border-hi);
+            padding: 0 1.5rem;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 12px color-mix(in srgb, var(--t-accent) 10%, transparent);
+            flex-shrink: 0;
+        }
+
+        .navbar-left { display: flex; align-items: center; gap: 1.2rem; }
+
+        .navbar-logo {
+            font-size: 1rem;
+            font-weight: bold;
+            letter-spacing: 0.4rem;
+            color: var(--t-accent);
+            text-shadow: 0 0 10px color-mix(in srgb, var(--t-accent) 50%, transparent);
+            text-decoration: none;
+        }
+
+        .navbar-sep   { color: var(--t-border-hi); font-size: 0.8rem; }
+        .navbar-page  { font-size: 0.65rem; letter-spacing: 0.25rem; color: var(--t-text-dim); }
+        .navbar-right { display: flex; align-items: center; gap: 1rem; }
+
+        .nav-user {
+            font-size: 0.7rem;
+            color: var(--t-text-dim);
+        }
+        .nav-user span {
+            color: var(--t-accent);
+            text-shadow: 0 0 8px color-mix(in srgb, var(--t-accent) 50%, transparent);
+        }
+
+        .btn-settings {
+            background: transparent;
+            border: 1px solid var(--t-border);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            width: 30px; height: 30px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-settings:hover { border-color: var(--t-accent); color: var(--t-accent); }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--t-accent);
+            color: var(--t-accent);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.2rem;
+            padding: 0.3rem 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover {
+            background: var(--t-accent);
+            color: var(--t-bg);
+        }
+
+        /* ── LAYOUT ──────────────────────────────────── */
+        .layout {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            height: calc(100vh - 50px);
+        }
+
+        /* ── SIDEBAR ─────────────────────────────────── */
+        .sidebar {
+            width: 240px;
+            flex-shrink: 0;
+            background: var(--t-bg2);
+            border-right: 1px solid var(--t-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 1rem 1.2rem 0.8rem;
+            border-bottom: 1px solid var(--t-border);
+            flex-shrink: 0;
+        }
+
+        .sidebar-title {
+            font-size: 0.6rem;
+            letter-spacing: 0.2rem;
+            color: var(--t-accent2);
+            margin-bottom: 0.8rem;
+        }
+
+        .sidebar-search {
+            display: flex;
+            align-items: center;
+            background: var(--t-surface);
+            border: 1px solid var(--t-border);
+            padding: 0 0.6rem;
+            gap: 0.4rem;
+            transition: border-color 0.2s;
+        }
+        .sidebar-search:focus-within { border-color: var(--t-accent); }
+        .sidebar-search-icon { color: var(--t-text-mute); font-size: 0.7rem; }
+        .sidebar-search input {
+            background: transparent;
+            border: none;
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.68rem;
+            padding: 0.45rem 0;
+            outline: none;
+            width: 100%;
+        }
+        .sidebar-search input::placeholder { color: var(--t-text-mute); }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--t-border) transparent;
+        }
+
+        .sidebar-section-label {
+            font-size: 0.52rem;
+            letter-spacing: 0.18rem;
+            color: var(--t-text-mute);
+            padding: 0.8rem 1.2rem 0.3rem;
+            text-transform: uppercase;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.5rem 1.2rem;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-left: 2px solid transparent;
+        }
+        .sidebar-item:hover { background: var(--t-surface); }
+        .sidebar-item.active {
+            background: color-mix(in srgb, var(--t-accent) 8%, var(--t-surface));
+            border-left-color: var(--t-accent);
+        }
+
+        .sidebar-item-icon { font-size: 0.9rem; flex-shrink: 0; }
+
+        .sidebar-item-name {
+            font-size: 0.68rem;
+            color: var(--t-text-dim);
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar-item.active .sidebar-item-name { color: var(--t-text); }
+
+        .sidebar-item-count {
+            font-size: 0.55rem;
+            color: var(--t-text-mute);
+            background: var(--t-border);
+            border-radius: 20px;
+            padding: 0.1rem 0.45rem;
+            flex-shrink: 0;
+        }
+        .sidebar-item.active .sidebar-item-count {
+            background: color-mix(in srgb, var(--t-accent) 20%, var(--t-border));
+            color: var(--t-accent);
+        }
+
+        /* admin tag dot */
+        .tag-colour-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ── ADMIN TAG CONTROLS ───────────────────────── */
+        .sidebar-footer {
+            border-top: 1px solid var(--t-border);
+            padding: 0.8rem 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .btn-new-tag {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.12rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-new-tag:hover { border-color: var(--t-accent); color: var(--t-accent); }
+
+        /* ── MAIN CONTENT ─────────────────────────────── */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-toolbar {
+            padding: 1rem 1.5rem 0.8rem;
+            border-bottom: 1px solid var(--t-border);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .search-bar {
+            flex: 1;
+            display: flex;
+            border: 1px solid var(--t-border-hi);
+            background: var(--t-surface);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-bar:focus-within {
+            border-color: var(--t-accent);
+            box-shadow: 0 0 12px color-mix(in srgb, var(--t-accent) 15%, transparent);
+        }
+        .search-prefix {
+            padding: 0 0.8rem;
+            color: var(--t-accent);
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            border-right: 1px solid var(--t-border);
+        }
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.78rem;
+            padding: 0.7rem 0.8rem;
+            outline: none;
+        }
+        .search-input::placeholder { color: var(--t-text-mute); }
+
+        .results-meta {
+            font-size: 0.58rem;
+            color: var(--t-text-mute);
+            letter-spacing: 0.08rem;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.2rem 1.5rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--t-border-hi) transparent;
+        }
+
+        /* ── PDF GRID ─────────────────────────────────── */
+        .pdf-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 1rem;
+        }
+
+        .pdf-card {
+            background: var(--t-surface);
+            border: 1px solid var(--t-border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .pdf-card:hover {
+            border-color: var(--t-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px color-mix(in srgb, var(--t-accent) 12%, transparent);
+        }
+
+        .pdf-cover {
+            height: 190px;
+            border-bottom: 1px solid var(--t-border);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: stretch;
+        }
+        .pdf-cover-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .pdf-cover-canvas {
+            width: 100%; height: 100%;
+            display: block;
+        }
+
+        /* admin tag button overlay */
+        .pdf-tag-btn {
+            position: absolute;
+            top: 0.4rem;
+            left: 0.4rem;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 0.6rem;
+            padding: 0.2rem 0.5rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.15s;
+            backdrop-filter: blur(4px);
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.08rem;
+            z-index: 5;
+        }
+        .pdf-card:hover .pdf-tag-btn { opacity: 1; }
+        .pdf-tag-btn:hover { background: rgba(0,0,0,0.8); border-color: var(--t-accent); color: var(--t-accent); }
+
+        .pdf-info {
+            padding: 0.65rem 0.8rem 0.7rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .pdf-name {
+            font-size: 0.7rem;
+            color: var(--t-text);
+            line-height: 1.4;
+            font-weight: 600;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .pdf-tags-row {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+            min-height: 18px;
+        }
+
+        .pdf-tag-chip {
+            font-size: 0.52rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 20px;
+            border: 1px solid currentColor;
+            letter-spacing: 0.05rem;
+            white-space: nowrap;
+        }
+
+        .pdf-meta {
+            font-size: 0.57rem;
+            color: var(--t-text-mute);
+        }
+
+        /* ── EMPTY STATE ──────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--t-text-mute);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .empty-icon  { font-size: 3rem; opacity: 0.35; }
+        .empty-title { font-size: 0.75rem; letter-spacing: 0.2rem; }
+        .empty-sub   { font-size: 0.68rem; max-width: 360px; line-height: 1.6; }
+
+        /* ── SPINNER ──────────────────────────────────── */
+        .spinner {
+            display: none;
+            width: 18px; height: 18px;
+            border: 2px solid var(--t-border);
+            border-top-color: var(--t-accent);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin: 2rem auto;
+        }
+        .spinner.active { display: block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── LOAD MORE ────────────────────────────────── */
+        .load-more-row { display: flex; justify-content: center; padding: 1.2rem 0; }
+        .btn-load-more {
+            background: var(--t-surface);
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.12rem;
+            padding: 0.55rem 2rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-load-more:hover { border-color: var(--t-accent); color: var(--t-accent); }
+
+        /* ── PDF READER MODAL ─────────────────────────── */
+        .pdf-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 500;
+            flex-direction: column;
+        }
+        .pdf-modal-overlay.active { display: flex; }
+
+        .pdf-modal-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 1.2rem;
+            background: var(--t-bg2);
+            border-bottom: 1px solid var(--t-border-hi);
+            flex-shrink: 0;
+            gap: 1rem;
+        }
+        .pdf-modal-title {
+            font-size: 0.7rem;
+            letter-spacing: 0.1rem;
+            color: var(--t-text);
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pdf-modal-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+        .btn-pdf-action {
+            background: transparent;
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.1rem;
+            padding: 0.3rem 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: all 0.15s;
+        }
+        .btn-pdf-action:hover       { border-color: var(--t-accent); color: var(--t-accent); }
+        .btn-pdf-close:hover        { border-color: var(--t-red);    color: var(--t-red); }
+        .pdf-modal-frame { flex: 1; width: 100%; border: none; background: #fff; }
+
+        /* ── TAG MANAGER MODAL ────────────────────────── */
+        .tag-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 600;
+            align-items: center;
+            justify-content: center;
+        }
+        .tag-modal-overlay.active { display: flex; }
+
+        .tag-modal {
+            background: var(--t-surface);
+            border: 1px solid var(--t-border-hi);
+            width: 100%;
+            max-width: 420px;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+        }
+
+        .tag-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid var(--t-border);
+        }
+        .tag-modal-title {
+            font-size: 0.7rem;
+            letter-spacing: 0.15rem;
+            color: var(--t-text);
+        }
+        .tag-modal-close {
+            background: transparent;
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-mute);
+            width: 26px; height: 26px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .tag-modal-close:hover { border-color: var(--t-red); color: var(--t-red); }
+
+        .tag-modal-body { padding: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; }
+
+        .tag-modal-pdf-name {
+            font-size: 0.72rem;
+            color: var(--t-text-dim);
+            border-left: 2px solid var(--t-accent);
+            padding-left: 0.7rem;
+            line-height: 1.4;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            max-height: 280px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        .tag-list-item {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 0.55rem 0.7rem;
+            border: 1px solid var(--t-border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+        .tag-list-item:hover { border-color: var(--t-border-hi); background: var(--t-surface2); }
+        .tag-list-item.assigned {
+            background: color-mix(in srgb, var(--item-colour, var(--t-accent)) 8%, var(--t-surface));
+            border-color: color-mix(in srgb, var(--item-colour, var(--t-accent)) 40%, var(--t-border));
+        }
+
+        .tag-checkbox {
+            width: 16px; height: 16px;
+            border: 1px solid var(--t-border-hi);
+            border-radius: 3px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem;
+            flex-shrink: 0;
+            transition: all 0.12s;
+        }
+        .tag-list-item.assigned .tag-checkbox {
+            background: var(--item-colour, var(--t-accent));
+            border-color: var(--item-colour, var(--t-accent));
+            color: #fff;
+        }
+
+        .tag-item-icon { font-size: 1rem; flex-shrink: 0; }
+        .tag-item-name { font-size: 0.7rem; color: var(--t-text); flex: 1; }
+
+        .tag-modal-empty {
+            text-align: center;
+            color: var(--t-text-mute);
+            font-size: 0.68rem;
+            padding: 1.5rem 0;
+        }
+
+        /* ── NEW TAG MODAL ────────────────────────────── */
+        .new-tag-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 700;
+            align-items: center;
+            justify-content: center;
+        }
+        .new-tag-modal-overlay.active { display: flex; }
+
+        .new-tag-modal {
+            background: var(--t-surface);
+            border: 1px solid var(--t-border-hi);
+            width: 100%;
+            max-width: 380px;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .form-label {
+            font-size: 0.58rem;
+            letter-spacing: 0.1rem;
+            color: var(--t-text-mute);
+        }
+        .form-input {
+            background: var(--t-bg);
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            padding: 0.55rem 0.8rem;
+            outline: none;
+            transition: border-color 0.15s;
+            border-radius: 3px;
+        }
+        .form-input:focus { border-color: var(--t-accent); }
+
+        .colour-row {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .colour-swatch {
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.1s;
+            flex-shrink: 0;
+        }
+        .colour-swatch:hover { transform: scale(1.15); }
+        .colour-swatch.selected { border-color: var(--t-text); transform: scale(1.1); }
+
+        .emoji-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            max-height: 140px;
+            overflow-y: auto;
+            padding: 0.2rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--t-border-hi) transparent;
+        }
+        .emoji-grid::-webkit-scrollbar       { width: 3px; }
+        .emoji-grid::-webkit-scrollbar-thumb { background: var(--t-border-hi); border-radius: 2px; }
+
+        .emoji-swatch {
+            width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            background: var(--t-bg2);
+            transition: all 0.12s;
+            flex-shrink: 0;
+        }
+        .emoji-swatch:hover    { background: var(--t-border-hi); }
+        .emoji-swatch.selected { border-color: var(--t-accent); background: color-mix(in srgb, var(--t-accent) 15%, var(--t-bg2)); }
+
+        .colour-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            max-height: 80px;
+            overflow-y: auto;
+            padding: 0.2rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--t-border-hi) transparent;
+        }
+        .colour-grid::-webkit-scrollbar       { width: 3px; }
+        .colour-grid::-webkit-scrollbar-thumb { background: var(--t-border-hi); border-radius: 2px; }
+
+        .btn-submit {
+            background: var(--t-accent);
+            border: none;
+            color: var(--t-bg);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.15rem;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            border-radius: 3px;
+        }
+        .btn-submit:hover { opacity: 0.85; }
+        .btn-cancel {
+            background: transparent;
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.15rem;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .btn-cancel:hover { border-color: var(--t-red); color: var(--t-red); }
+
+        .form-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+        .tag-delete-btn {
+            background: transparent;
+            border: none;
+            color: var(--t-text-mute);
+            cursor: pointer;
+            font-size: 0.7rem;
+            padding: 0 0.2rem;
+            flex-shrink: 0;
+            transition: color 0.15s;
+        }
+        .tag-delete-btn:hover { color: var(--t-red); }
+
+        /* ── TAG DESCRIPTION PANEL ───────────────────── */
+        .tag-desc-panel {
+            border-top: 1px solid var(--t-border);
+            padding: 0.8rem 1.2rem;
+            flex-shrink: 0;
+        }
+        .tag-desc-text {
+            font-size: 0.65rem;
+            color: var(--t-text-dim);
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        /* ── CANVAS COVER PALETTES ────────────────────── */
+    </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ─────────────────────────────────────────── -->
+<nav class="navbar">
+    <div class="navbar-left">
+        <a href="{% url 'dashboard' %}" class="navbar-logo">NET-1</a>
+        <span class="navbar-sep">/</span>
+        <a href="{% url 'catalogue' %}" class="navbar-sep" style="text-decoration:none;letter-spacing:0.1rem;font-size:0.65rem;color:var(--t-text-dim)">CATALOGUE</a>
+        <span class="navbar-sep">/</span>
+        <span class="navbar-page">PDF LIBRARY</span>
+    </div>
+    <div class="navbar-right">
+        <span class="nav-user">> USER: <span>{{ request.user.username|upper }}</span></span>
+        <button class="btn-settings" onclick="openThemePanel()" title="Themes">⚙</button>
+        <form method="POST" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="btn-logout" type="submit">[ LOGOUT ]</button>
+        </form>
+    </div>
+</nav>
+
+<!-- ── LAYOUT ─────────────────────────────────────────── -->
+<div class="layout">
+
+    <!-- ── SIDEBAR ────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">// TAGS</div>
+            <div class="sidebar-search">
+                <span class="sidebar-search-icon">⌕</span>
+                <input type="text" id="tagSearch" placeholder="filter tags...">
+            </div>
+        </div>
+
+        <nav class="sidebar-nav" id="sidebarNav">
+            <div class="sidebar-section-label">BROWSE</div>
+
+            <div class="sidebar-item active" data-tag="all" onclick="selectTag('all', this)">
+                <span class="sidebar-item-icon">📋</span>
+                <span class="sidebar-item-name">All PDFs</span>
+                <span class="sidebar-item-count">{{ pdf_count }}</span>
+            </div>
+
+            <div class="sidebar-item" data-tag="untagged" onclick="selectTag('untagged', this)">
+                <span class="sidebar-item-icon">🏷️</span>
+                <span class="sidebar-item-name">Untagged</span>
+                <span class="sidebar-item-count" id="untaggedCount">–</span>
+            </div>
+
+            {% if tags %}
+            <div class="sidebar-section-label" style="margin-top:0.5rem">TAGS</div>
+            {% for tag in tags %}
+            <div class="sidebar-item" data-tag="{{ tag.slug }}"
+                 data-desc="{{ tag.description|default:'' }}"
+                 onclick="selectTag('{{ tag.slug }}', this)"
+                 id="tag-item-{{ tag.slug }}">
+                <div class="tag-colour-dot" style="background:'{{ tag.colour }}'"></div>
+                <span class="sidebar-item-icon">{{ tag.icon }}</span>
+                <span class="sidebar-item-name">{{ tag.name }}</span>
+                <span class="sidebar-item-count" id="tag-count-{{ tag.slug }}">–</span>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </nav>
+
+        <!-- tag description panel — shown when a tag is selected -->
+        <div class="tag-desc-panel" id="tagDescPanel" style="display:none">
+            <div class="tag-desc-text" id="tagDescText"></div>
+        </div>
+
+        {% if is_admin %}
+        <div class="sidebar-footer">
+            <button class="btn-new-tag" onclick="openNewTagModal()">+ NEW TAG</button>
+        </div>
+        {% endif %}
+    </aside>
+
+    <!-- ── MAIN CONTENT ───────────────────────────────── -->
+    <div class="main-content">
+        <div class="content-toolbar">
+            <div class="search-bar">
+                <div class="search-prefix">⌕</div>
+                <input type="text" class="search-input" id="searchInput"
+                       placeholder="search PDFs..." autocomplete="off">
+            </div>
+            <span class="results-meta" id="resultsMeta"></span>
+        </div>
+
+        <div class="content-area">
+            <div class="spinner" id="spinner"></div>
+            <div class="pdf-grid" id="pdfGrid"></div>
+            <div class="load-more-row" id="loadMoreRow" style="display:none">
+                <button class="btn-load-more" id="loadMoreBtn">[ LOAD MORE ]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── PDF READER MODAL ───────────────────────────────── -->
+<div class="pdf-modal-overlay" id="pdfModal">
+    <div class="pdf-modal-bar">
+        <span class="pdf-modal-title" id="pdfModalTitle"></span>
+        <div class="pdf-modal-actions">
+            <a class="btn-pdf-action" id="pdfDownloadBtn" download>⬇ DOWNLOAD</a>
+            <button class="btn-pdf-action btn-pdf-close" onclick="closePdfModal()">✕ CLOSE</button>
+        </div>
+    </div>
+    <iframe class="pdf-modal-frame" id="pdfFrame" src=""></iframe>
+</div>
+
+<!-- ── TAG MANAGER MODAL ──────────────────────────────── -->
+<div class="tag-modal-overlay" id="tagModal">
+    <div class="tag-modal">
+        <div class="tag-modal-header">
+            <span class="tag-modal-title">// MANAGE TAGS</span>
+            <button class="tag-modal-close" onclick="closeTagModal()">✕</button>
+        </div>
+        <div class="tag-modal-body">
+            <div class="tag-modal-pdf-name" id="tagModalPdfName"></div>
+            <div class="tag-list" id="tagList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ── NEW TAG MODAL (admin only) ─────────────────────── -->
+{% if is_admin %}
+<div class="new-tag-modal-overlay" id="newTagModal">
+    <div class="new-tag-modal">
+        <div class="tag-modal-header">
+            <span class="tag-modal-title">// CREATE TAG</span>
+            <button class="tag-modal-close" onclick="closeNewTagModal()">✕</button>
+        </div>
+        <div class="tag-modal-body">
+            <div class="form-group">
+                <label class="form-label">TAG NAME</label>
+                <input type="text" class="form-input" id="newTagName" placeholder="e.g. Science">
+            </div>
+            <div class="form-group">
+                <label class="form-label">ICON</label>
+                <div class="emoji-grid" id="pdfEmojiGrid"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">COLOUR</label>
+                <div class="colour-grid" id="pdfColourGrid"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">DESCRIPTION (optional)</label>
+                <input type="text" class="form-input" id="newTagDesc" placeholder="brief description">
+            </div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="closeNewTagModal()">CANCEL</button>
+                <button class="btn-submit" onclick="submitNewTag()">CREATE TAG</button>
+            </div>
+            <div id="newTagError" style="font-size:0.62rem;color:var(--t-red);display:none"></div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ── THEME PANEL ────────────────────────────────────── -->
+{% include "interface/theme_panel.html" %}
+
+<script>
+// ============================================================
+//  STATE
+// ============================================================
+const IS_ADMIN    = {% if is_admin %}true{% else %}false{% endif %};
+let currentTag    = 'all';
+let currentQuery  = '';
+let currentPage   = 1;
+let totalPdfs     = 0;
+let isLoading     = false;
+const PER_PAGE    = 40;
+
+// ============================================================
+//  ELEMENTS
+// ============================================================
+const pdfGrid    = document.getElementById('pdfGrid');
+const spinner    = document.getElementById('spinner');
+const resultsMeta = document.getElementById('resultsMeta');
+const loadMoreRow = document.getElementById('loadMoreRow');
+const loadMoreBtn = document.getElementById('loadMoreBtn');
+const searchInput = document.getElementById('searchInput');
+
+// ============================================================
+//  SEARCH
+// ============================================================
+let debounce;
+searchInput.addEventListener('input', () => {
+    currentQuery = searchInput.value.trim();
+    clearTimeout(debounce);
+    debounce = setTimeout(() => { currentPage = 1; loadResults(true); }, 300);
+});
+
+// sidebar tag filter search
+document.getElementById('tagSearch').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('#sidebarNav .sidebar-item[data-tag]').forEach(item => {
+        const name = item.querySelector('.sidebar-item-name').textContent.toLowerCase();
+        item.style.display = name.includes(q) ? '' : 'none';
+    });
+});
+
+// ============================================================
+//  TAG SELECTION
+// ============================================================
+function selectTag(slug, el) {
+    currentTag  = slug;
+    currentPage = 1;
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    if (el) el.classList.add('active');
+
+    // show tag description if available
+    const descPanel = document.getElementById('tagDescPanel');
+    const descText  = document.getElementById('tagDescText');
+    const desc      = el ? el.dataset.desc : '';
+    if (desc && desc.trim()) {
+        descText.textContent  = desc;
+        descPanel.style.display = 'block';
+    } else {
+        descPanel.style.display = 'none';
+    }
+
+    loadResults(true);
+}
+
+// ── Load sidebar counts ──────────────────────────────────
+async function loadSidebarCounts() {
+    try {
+        // fetch all PDFs (no filter) to get full counts
+        const resp = await fetch(`{% url 'pdf_library_search' %}?tag=all&page=1`);
+        const data = await resp.json();
+        const allPdfs = data.pdfs || [];
+
+        // count untagged
+        const untaggedResp = await fetch(`{% url 'pdf_library_search' %}?tag=untagged&page=1`);
+        const untaggedData = await untaggedResp.json();
+        const untaggedEl = document.getElementById('untaggedCount');
+        if (untaggedEl) untaggedEl.textContent = untaggedData.total_pdfs || 0;
+
+        // count per tag — fetch each tag's total
+        document.querySelectorAll('.sidebar-item[data-tag]').forEach(async item => {
+            const slug = item.dataset.tag;
+            if (slug === 'all' || slug === 'untagged') return;
+
+            const countEl = document.getElementById(`tag-count-${slug}`);
+            if (!countEl) return;
+
+            try {
+                const r = await fetch(`{% url 'pdf_library_search' %}?tag=${slug}&page=1`);
+                const d = await r.json();
+                countEl.textContent = d.total_pdfs || 0;
+            } catch { countEl.textContent = '–'; }
+        });
+
+    } catch(e) {
+        console.error('Failed to load sidebar counts:', e);
+    }
+}
+
+// ============================================================
+//  LOAD RESULTS
+// ============================================================
+async function loadResults(reset = false) {
+    if (isLoading) return;
+    isLoading = true;
+
+    if (reset) {
+        pdfGrid.innerHTML  = '';
+        loadMoreRow.style.display = 'none';
+        totalPdfs = 0;
+    }
+
+    spinner.classList.add('active');
+
+    const params = new URLSearchParams({
+        q   : currentQuery,
+        tag : currentTag,
+        page: currentPage,
+    });
+
+    try {
+        const resp = await fetch(`{% url 'pdf_library_search' %}?${params}`);
+        const data = await resp.json();
+
+        totalPdfs = data.total_pdfs || 0;
+        renderPdfs(data.pdfs || []);
+        updateMeta();
+
+        const loaded = currentPage * PER_PAGE;
+        loadMoreRow.style.display = loaded < totalPdfs ? 'flex' : 'none';
+        loadMoreBtn.disabled = false;
+
+    } catch (e) {
+        pdfGrid.innerHTML = `<div class="empty-state">
+            <div class="empty-icon">⚠</div>
+            <div class="empty-title">ERROR</div>
+            <div class="empty-sub">${e.message}</div>
+        </div>`;
+    }
+
+    spinner.classList.remove('active');
+    isLoading = false;
+}
+
+function updateMeta() {
+    resultsMeta.textContent = totalPdfs > 0
+        ? `// ${totalPdfs.toLocaleString()} PDF${totalPdfs !== 1 ? 's' : ''}`
+        : currentQuery ? '// No results' : '// No PDFs found';
+}
+
+loadMoreBtn.addEventListener('click', () => {
+    currentPage++;
+    loadMoreBtn.disabled = true;
+    loadResults(false);
+});
+
+// ============================================================
+//  RENDER PDFS
+// ============================================================
+function renderPdfs(pdfs) {
+    if (pdfs.length === 0 && currentPage === 1) {
+        pdfGrid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+            <div class="empty-icon">📭</div>
+            <div class="empty-title">NO PDFS FOUND</div>
+            <div class="empty-sub">
+                ${currentTag !== 'all' && currentTag !== 'untagged'
+                    ? 'No PDFs have this tag yet.'
+                    : currentTag === 'untagged'
+                    ? 'All PDFs are tagged.'
+                    : 'Drop PDF files into data/pdfs/ to get started.'}
+                ${IS_ADMIN && currentTag === 'all' ? '<br>Use the sidebar to create tags.' : ''}
+            </div>
+        </div>`;
+        return;
+    }
+
+    pdfs.forEach(pdf => {
+        const card = document.createElement('div');
+        card.className = 'pdf-card';
+
+        // cover — real thumbnail or canvas
+        const coverHtml = pdf.thumb_url
+            ? `<img class="pdf-cover-img" src="${escHtml(pdf.thumb_url)}" alt="${escHtml(pdf.name)}" loading="lazy">`
+            : `<canvas class="pdf-cover-canvas" width="170" height="190" data-name="${escHtml(pdf.name)}"></canvas>`;
+
+        // tag chips
+        const tagsHtml = (pdf.tags || []).map(t =>
+            `<span class="pdf-tag-chip" style="color:${t.colour};border-color:${t.colour}">
+                ${escHtml(t.icon)} ${escHtml(t.name)}
+            </span>`
+        ).join('');
+
+        // admin tag button
+        const tagBtnHtml = IS_ADMIN
+            ? `<button class="pdf-tag-btn" onclick="event.stopPropagation();openTagModal('${escHtml(pdf.filename)}','${escHtml(pdf.name)}')">🏷 TAG</button>`
+            : '';
+
+        card.innerHTML = `
+            <div class="pdf-cover">
+                ${coverHtml}
+                ${tagBtnHtml}
+            </div>
+            <div class="pdf-info">
+                <div class="pdf-name">${escHtml(pdf.name)}</div>
+                <div class="pdf-tags-row">${tagsHtml}</div>
+                <div class="pdf-meta">${escHtml(pdf.size)}</div>
+            </div>
+        `;
+
+        card.addEventListener('click', () => openPdfModal(pdf.filename, pdf.name));
+        pdfGrid.appendChild(card);
+    });
+
+    // draw canvas covers
+    requestAnimationFrame(drawAllCovers);
+}
+
+// ============================================================
+//  PDF READER MODAL
+// ============================================================
+const pdfModal       = document.getElementById('pdfModal');
+const pdfFrame       = document.getElementById('pdfFrame');
+const pdfModalTitle  = document.getElementById('pdfModalTitle');
+const pdfDownloadBtn = document.getElementById('pdfDownloadBtn');
+
+function openPdfModal(filepath, name) {
+    const url = `/data-master/catalogue/pdf/${filepath}`;
+    pdfModalTitle.textContent = name;
+    pdfFrame.src              = url;
+    pdfDownloadBtn.href       = url;
+    pdfModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePdfModal() {
+    pdfModal.classList.remove('active');
+    pdfFrame.src = '';
+    document.body.style.overflow = '';
+}
+
+// ============================================================
+//  TAG MANAGER MODAL
+// ============================================================
+const tagModal      = document.getElementById('tagModal');
+const tagList       = document.getElementById('tagList');
+const tagModalTitle = document.getElementById('tagModalPdfName');
+
+let _tagModalFile = '';
+let _tagModalName = '';
+
+async function openTagModal(filepath, name) {
+    _tagModalFile = filepath;
+    _tagModalName = name;
+    tagModalTitle.textContent = name;
+    tagList.innerHTML = '<div style="color:var(--t-text-mute);font-size:0.65rem;padding:0.5rem">Loading...</div>';
+    tagModal.classList.add('active');
+
+    const resp = await fetch(`{% url 'pdf_tags_for_pdf' %}?pdf_path=${encodeURIComponent(filepath)}`);
+    const data = await resp.json();
+
+    tagList.innerHTML = '';
+
+    if (!data.all_tags || data.all_tags.length === 0) {
+        tagList.innerHTML = '<div class="tag-modal-empty">No tags created yet. Create a tag using the + NEW TAG button.</div>';
+        return;
+    }
+
+    data.all_tags.forEach(tag => {
+        const item = document.createElement('div');
+        item.className = `tag-list-item${tag.assigned ? ' assigned' : ''}`;
+        item.style.setProperty('--item-colour', tag.colour);
+        item.dataset.tagId    = tag.id;
+        item.dataset.assigned = tag.assigned ? '1' : '0';
+
+        item.innerHTML = `
+            <div class="tag-checkbox">${tag.assigned ? '✓' : ''}</div>
+            <span class="tag-item-icon">${escHtml(tag.icon)}</span>
+            <span class="tag-item-name">${escHtml(tag.name)}</span>
+            ${IS_ADMIN ? `<button class="tag-delete-btn" onclick="event.stopPropagation();deleteTag(${tag.id})" title="Delete tag">✕</button>` : ''}
+        `;
+
+        item.addEventListener('click', () => toggleTagAssignment(item, tag));
+        tagList.appendChild(item);
+    });
+}
+
+function closeTagModal() {
+    tagModal.classList.remove('active');
+    // refresh grid to show updated tags
+    loadResults(true);
+}
+
+async function toggleTagAssignment(item, tag) {
+    const isAssigned = item.dataset.assigned === '1';
+    const action     = isAssigned ? 'unassign' : 'assign';
+
+    const resp = await fetch('{% url "pdf_tag_assign" %}', {
+        method : 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken' : getCsrf(),
+        },
+        body: JSON.stringify({
+            tag_id  : tag.id,
+            pdf_path: _tagModalFile,
+            pdf_name: _tagModalName,
+            action  : action,
+        }),
+    });
+
+    if (resp.ok) {
+        item.dataset.assigned = isAssigned ? '0' : '1';
+        item.classList.toggle('assigned', !isAssigned);
+        item.querySelector('.tag-checkbox').textContent = !isAssigned ? '✓' : '';
+    }
+}
+
+async function deleteTag(tagId) {
+    if (!confirm('Delete this tag? It will be removed from all PDFs.')) return;
+
+    const resp = await fetch(`/data-master/library/tags/${tagId}/delete/`, {
+        method : 'POST',
+        headers: { 'X-CSRFToken': getCsrf() },
+    });
+
+    if (resp.ok) {
+        closeTagModal();
+        location.reload();   // reload to update sidebar
+    }
+}
+
+// ============================================================
+//  NEW TAG MODAL
+// ============================================================
+const newTagModal = document.getElementById('newTagModal');
+
+// ── EMOJI + COLOUR PICKER ──────────────────────────────────
+const PDF_EMOJIS = [
+    '🏷️','📌','🔖','🗂️','📋','📁','🗃️','📂','🗄️','📊',
+    '📝','✏️','🖊️','📓','📔','📒','📃','📄','📑','🗒️',
+    '💡','🧠','🔍','🔎','💭','🤔','👁️','🧐','✨','⚡',
+    '💻','🖥️','⌨️','🖱️','📱','🔧','🛠️','⚙️','🔌','📡',
+    '🔬','🔭','🧬','🧪','🧫','⚗️','📐','📏','🗺️','🌐',
+    '🎨','🎵','🎶','🎬','📷','🖼️','🎭','🎤','📻','🎮',
+    '💬','👥','🤝','💼','🏢','📞','📧','📮','🗣️','👋',
+    '📅','📆','⏰','⏳','🕐','📈','📉','🗓️','⌛','🔔',
+    '🌱','🌿','🌍','🌙','⭐','☀️','🌊','🏔️','🌸','🍀',
+    '🔥','❤️','💛','💚','💙','💜','🏆','🎯','🚀','🎁',
+];
+
+const PDF_COLOURS = [
+    '#f59e0b','#ef4444','#3b82f6','#10b981','#8b5cf6',
+    '#ec4899','#f97316','#06b6d4','#84cc16','#6366f1',
+    '#14b8a6','#f43f5e','#a855f7','#0ea5e9','#22c55e',
+    '#eab308','#64748b','#78716c','#dc2626','#1d4ed8',
+];
+
+let selectedEmoji  = PDF_EMOJIS[0];
+let selectedColour = PDF_COLOURS[0];
+
+function buildPdfPickers() {
+    const emojiGrid   = document.getElementById('pdfEmojiGrid');
+    const colourGrid  = document.getElementById('pdfColourGrid');
+    if (!emojiGrid || !colourGrid) return;
+
+    emojiGrid.innerHTML  = '';
+    colourGrid.innerHTML = '';
+
+    PDF_EMOJIS.forEach((e, i) => {
+        const sw = document.createElement('div');
+        sw.className   = 'emoji-swatch' + (i === 0 ? ' selected' : '');
+        sw.textContent = e;
+        sw.addEventListener('click', () => {
+            emojiGrid.querySelectorAll('.emoji-swatch').forEach(s => s.classList.remove('selected'));
+            sw.classList.add('selected');
+            selectedEmoji = e;
+        });
+        emojiGrid.appendChild(sw);
+    });
+
+    PDF_COLOURS.forEach((c, i) => {
+        const sw = document.createElement('div');
+        sw.className = 'colour-swatch' + (i === 0 ? ' selected' : '');
+        sw.style.background = c;
+        sw.addEventListener('click', () => {
+            colourGrid.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('selected'));
+            sw.classList.add('selected');
+            selectedColour = c;
+        });
+        colourGrid.appendChild(sw);
+    });
+}
+
+function openNewTagModal() {
+    if (newTagModal) {
+        newTagModal.classList.add('active');
+        buildPdfPickers();
+    }
+}
+function closeNewTagModal() { if (newTagModal) newTagModal.classList.remove('active'); }
+
+async function submitNewTag() {
+    const name  = document.getElementById('newTagName').value.trim();
+    const desc  = document.getElementById('newTagDesc').value.trim();
+    const errEl = document.getElementById('newTagError');
+
+    errEl.style.display = 'none';
+    if (!name) { errEl.textContent = 'Name is required'; errEl.style.display = 'block'; return; }
+
+    const resp = await fetch('{% url "pdf_tag_create" %}', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+        body   : JSON.stringify({ name, icon: selectedEmoji, colour: selectedColour, description: desc }),
+    });
+
+    const data = await resp.json();
+    if (resp.ok) {
+        closeNewTagModal();
+        location.reload();
+    } else {
+        errEl.textContent   = data.error || 'Failed to create tag';
+        errEl.style.display = 'block';
+    }
+}
+
+// ============================================================
+//  CANVAS COVER GENERATOR  (same as catalogue)
+// ============================================================
+const COVER_PALETTES = [
+    ['#1a1a2e','#16213e','#e94560'], ['#0f3460','#533483','#e94560'],
+    ['#1b262c','#0f4c75','#1b98e0'], ['#2d4a22','#1a2e12','#7ec850'],
+    ['#2c1654','#4a1942','#e040fb'], ['#1a0a00','#3d1a00','#ff6d00'],
+    ['#002b36','#073642','#2aa198'], ['#1a1a1a','#2d2d2d','#f59e0b'],
+    ['#1e0a0a','#3a0a0a','#ef4444'], ['#0a1628','#0f2040','#60a5fa'],
+    ['#1a2e1a','#2d4a2d','#34d399'], ['#2e1a2e','#4a2d4a','#f472b6'],
+];
+
+function hashStr(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (Math.imul(31,h) + s.charCodeAt(i))|0;
+    return Math.abs(h);
+}
+
+function drawPdfCover(canvas) {
+    const name   = canvas.dataset.name || 'Document';
+    const ctx    = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const [c1,c2,accent] = COVER_PALETTES[hashStr(name) % COVER_PALETTES.length];
+
+    const grad = ctx.createLinearGradient(0,0,w,h);
+    grad.addColorStop(0,c1); grad.addColorStop(1,c2);
+    ctx.fillStyle = grad; ctx.fillRect(0,0,w,h);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
+    for (let x=0;x<w;x+=18){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+    for (let y=0;y<h;y+=18){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+
+    ctx.fillStyle=accent; ctx.fillRect(0,0,w,3);
+    ctx.fillStyle=accent+'33'; ctx.beginPath();
+    ctx.moveTo(w,0);ctx.lineTo(w,55);ctx.lineTo(w-55,0);ctx.closePath();ctx.fill();
+
+    ctx.font='2rem serif'; ctx.textAlign='center'; ctx.fillText('📄',w/2,h/2-10);
+
+    const words=name.split(' '); const maxW=w-20;
+    ctx.fillStyle='#fff';
+    ctx.font=`bold ${Math.min(12,Math.max(9,120/Math.max(name.length,1)))}px sans-serif`;
+    ctx.textAlign='center';
+    let line='',lines=[];
+    for(const word of words){
+        const test=line?line+' '+word:word;
+        if(ctx.measureText(test).width>maxW&&line){lines.push(line);line=word;if(lines.length>=2)break;}
+        else line=test;
+    }
+    if(line&&lines.length<2)lines.push(line);
+    lines.forEach((l,i)=>ctx.fillText(l,w/2,h/2+22+i*17));
+
+    ctx.fillStyle=accent;
+    for(let i=0;i<5;i++){ctx.beginPath();ctx.arc(w/2-24+i*12,h-10,2.5,0,Math.PI*2);ctx.fill();}
+}
+
+function drawAllCovers() {
+    document.querySelectorAll('.pdf-cover-canvas').forEach(c => drawPdfCover(c));
+}
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getCsrf() {
+    return document.cookie.split(';')
+        .find(c => c.trim().startsWith('csrftoken='))
+        ?.split('=')[1] || '';
+}
+
+// close on overlay click
+document.getElementById('tagModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('tagModal')) closeTagModal();
+});
+
+// ESC
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closePdfModal(); closeTagModal(); closeNewTagModal(); }
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    loadResults(true);
+    loadSidebarCounts();
+});
+</script>
+
+</body>
+</html>

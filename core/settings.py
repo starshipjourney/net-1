@@ -123,6 +123,9 @@ CACHES = {
         'LOCATION': f"valkey://{config('VALKEY_HOST')}:{config('VALKEY_PORT')}/0",
         'OPTIONS': {
             'CLIENT_CLASS': 'django_valkey.client.DefaultClient',
-        }
+        },
+        'TIMEOUT': 60 * 60 * 24,   # 24 hours default
+        'KEY_PREFIX': 'net1',
     }
 }
+ 

@@ -23,8 +23,8 @@
     .theme-panel {
         position: fixed;
         top: 52px;
-        right: -280px;
-        width: 260px;
+        right: -300px;
+        width: 276px;
         height: calc(100vh - 52px);
         background: var(--t-surface);
         border-left: 1px solid var(--t-border-hi);
@@ -32,7 +32,7 @@
         display: flex;
         flex-direction: column;
         transition: right 0.25s ease;
-        box-shadow: -4px 0 24px rgba(0,0,0,0.4);
+        box-shadow: -4px 0 24px rgba(0,0,0,0.25);
     }
 
     .theme-panel.active { right: 0; }
@@ -43,6 +43,7 @@
         justify-content: space-between;
         padding: 1rem 1.2rem 0.8rem;
         border-bottom: 1px solid var(--t-border);
+        flex-shrink: 0;
     }
 
     .theme-panel-title {
@@ -68,70 +69,85 @@
     .theme-panel-body {
         flex: 1;
         overflow-y: auto;
-        padding: 1rem;
+        padding: 0.8rem;
         display: flex;
         flex-direction: column;
-        gap: 0.6rem;
+        gap: 0.4rem;
         scrollbar-width: thin;
         scrollbar-color: var(--t-border-hi) transparent;
     }
 
+    /* section label */
+    .theme-section-label {
+        font-family: 'Courier New', monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.2rem;
+        color: var(--t-text-mute);
+        padding: 0.6rem 0.2rem 0.2rem;
+        text-transform: uppercase;
+    }
+    .theme-section-label:first-child { padding-top: 0.2rem; }
+
     .theme-card {
         border: 2px solid var(--t-border);
-        border-radius: 6px;
-        padding: 0.8rem 0.9rem;
+        border-radius: 8px;
+        padding: 0.75rem 0.9rem;
         cursor: pointer;
         transition: all 0.15s;
         background: var(--t-surface2);
     }
 
-    .theme-card:hover        { border-color: var(--t-accent); }
-    .theme-card.active-theme { border-color: var(--t-accent); background: color-mix(in srgb, var(--t-accent) 8%, var(--t-surface2)); }
+    .theme-card:hover        { border-color: var(--t-accent); transform: translateX(-2px); }
+    .theme-card.active-theme {
+        border-color: var(--t-accent);
+        background: color-mix(in srgb, var(--t-accent) 8%, var(--t-surface2));
+    }
 
     .theme-card-top {
         display: flex;
         align-items: center;
         gap: 0.6rem;
-        margin-bottom: 0.4rem;
+        margin-bottom: 0.35rem;
     }
 
     .theme-swatches {
         display: flex;
         gap: 3px;
+        flex-shrink: 0;
     }
 
     .theme-swatch {
-        width: 14px;
-        height: 14px;
+        width: 13px;
+        height: 13px;
         border-radius: 50%;
-        border: 1px solid rgba(255,255,255,0.1);
+        border: 1px solid rgba(128,128,128,0.2);
         flex-shrink: 0;
     }
 
     .theme-card-name {
         font-family: 'Courier New', monospace;
-        font-size: 0.7rem;
-        letter-spacing: 0.08rem;
+        font-size: 0.68rem;
+        letter-spacing: 0.06rem;
         color: var(--t-text);
         font-weight: 600;
+        flex: 1;
     }
 
+    .theme-active-dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--t-accent);
+        flex-shrink: 0;
+        display: none;
+        box-shadow: 0 0 6px var(--t-accent);
+    }
+    .theme-card.active-theme .theme-active-dot { display: block; }
+
     .theme-card-desc {
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         color: var(--t-text-dim);
         line-height: 1.4;
     }
-
-    .theme-active-badge {
-        font-family: 'Courier New', monospace;
-        font-size: 0.55rem;
-        letter-spacing: 0.1rem;
-        color: var(--t-accent);
-        margin-top: 0.3rem;
-        display: none;
-    }
-
-    .theme-card.active-theme .theme-active-badge { display: block; }
 </style>
 
 <script>
@@ -150,33 +166,45 @@ function buildThemePanel() {
     const current = net1GetTheme();
     body.innerHTML = '';
 
-    Object.entries(NET1_THEMES).forEach(([key, theme]) => {
-        const card = document.createElement('div');
-        card.className = 'theme-card' + (key === current ? ' active-theme' : '');
+    const dark  = Object.entries(NET1_THEMES).filter(([, t]) => t.dark !== false);
+    const light = Object.entries(NET1_THEMES).filter(([, t]) => t.dark === false);
 
-        const swatchesHtml = theme.preview
-            .map(c => `<div class="theme-swatch" style="background:${c}"></div>`)
-            .join('');
+    function renderSection(label, entries) {
+        const section = document.createElement('div');
+        section.className = 'theme-section-label';
+        section.textContent = label;
+        body.appendChild(section);
 
-        card.innerHTML = `
-            <div class="theme-card-top">
-                <div class="theme-swatches">${swatchesHtml}</div>
-                <div class="theme-card-name">${theme.label.toUpperCase()}</div>
-            </div>
-            <div class="theme-card-desc">${theme.desc}</div>
-            <div class="theme-active-badge">● ACTIVE</div>
-        `;
+        entries.forEach(([key, theme]) => {
+            const card = document.createElement('div');
+            card.className = 'theme-card' + (key === current ? ' active-theme' : '');
 
-        card.addEventListener('click', () => {
-            net1ApplyTheme(key);
-            document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active-theme'));
-            card.classList.add('active-theme');
+            const swatchesHtml = theme.preview
+                .map(c => `<div class="theme-swatch" style="background:${c}"></div>`)
+                .join('');
+
+            card.innerHTML = `
+                <div class="theme-card-top">
+                    <div class="theme-swatches">${swatchesHtml}</div>
+                    <div class="theme-card-name">${theme.label}</div>
+                    <div class="theme-active-dot"></div>
+                </div>
+                <div class="theme-card-desc">${theme.desc}</div>
+            `;
+
+            card.addEventListener('click', () => {
+                net1ApplyTheme(key);
+                document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active-theme'));
+                card.classList.add('active-theme');
+            });
+
+            body.appendChild(card);
         });
+    }
 
-        body.appendChild(card);
-    });
+    renderSection('— DARK —', dark);
+    renderSection('— LIGHT —', light);
 }
 
-// build panel after DOM ready
 document.addEventListener('DOMContentLoaded', buildThemePanel);
 </script>

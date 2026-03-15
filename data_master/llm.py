@@ -12,58 +12,122 @@ OLLAMA_MODEL = 'qwen3:8b'
 client = ollama.Client(host=OLLAMA_HOST)
 
 # ============================================================
-#  BOOK QUERY DETECTION
-#  Keywords that signal the user wants books/literature
+#  SYSTEM PROMPT
+#  Natural, conversational — articles are a bonus not a crutch
 # ============================================================
-BOOK_KEYWORDS = {
-    'book', 'novel', 'read', 'author', 'story', 'literature',
-    'fiction', 'written', 'wrote', 'chapter', 'recommend',
-    'recommendation', 'classic', 'tale', 'poem', 'poetry',
-    'prose', 'narrative', 'adventure', 'romance',
-}
+SYSTEM_PROMPT = """You are NET-1, an intelligent offline assistant.
 
-def is_book_query(query):
-    words = set(query.lower().split())
-    return bool(words & BOOK_KEYWORDS)
+You have broad general knowledge and can help with anything — conversation,
+reasoning, maths, coding, writing, advice, analysis, and more.
+
+You also have access to a local knowledge library containing:
+  - Wikipedia articles
+  - Wikibooks textbooks
+  - Wikivoyage travel guides
+  - Project Gutenberg classic literature
+  - iFixit repair and how-to guides
+  - arXiv scientific research abstracts
+
+When relevant library documents are provided as CONTEXT, use them to enrich
+your answer. Reference them naturally if helpful — but never force them in.
+
+If CONTEXT is provided, end your response with this line only when genuinely useful:
+SOURCES: slug-one, slug-two
+
+Rules:
+- Talk naturally. Be helpful, clear, and conversational.
+- Answer questions directly — do not say "based on the context" or "according to".
+- Only include SOURCES if the documents actually helped your answer.
+- If no documents are relevant, omit the SOURCES line entirely.
+- Never invent slugs. Only use slugs exactly as shown in CONTEXT.
+- No XML tags, no markdown headers, no robotic formatting.
+- Respond in the same language the user writes in."""
 
 
 # ============================================================
-#  STOP WORDS — ignored in search to reduce noise
+#  STOP WORDS
 # ============================================================
 STOP_WORDS = {
     'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all',
     'can', 'her', 'was', 'one', 'our', 'out', 'day', 'get',
     'has', 'him', 'his', 'how', 'its', 'may', 'new', 'now',
-    'old', 'see', 'two', 'who', 'did', 'did', 'from', 'into',
-    'have', 'that', 'this', 'with', 'they', 'been', 'some',
-    'what', 'when', 'your', 'said', 'each', 'she', 'book',
-    'about', 'need', 'want', 'looking', 'find', 'give', 'tell',
-    'does', 'any', 'more', 'also', 'than', 'then', 'them',
-    'these', 'those', 'would', 'could', 'should', 'there',
-    'their', 'which', 'while', 'where', 'know', 'like',
+    'old', 'see', 'two', 'who', 'did', 'from', 'into', 'have',
+    'that', 'this', 'with', 'they', 'been', 'some', 'what',
+    'when', 'your', 'said', 'each', 'she', 'about', 'need',
+    'want', 'looking', 'find', 'give', 'tell', 'does', 'any',
+    'more', 'also', 'than', 'then', 'them', 'these', 'those',
+    'would', 'could', 'should', 'there', 'their', 'which',
+    'while', 'where', 'know', 'like', 'just', 'very', 'much',
 }
 
-def get_search_words(query):
-    """Extract meaningful search words, filtering noise."""
-    words = []
-    for w in query.lower().split():
-        w = w.strip('.,?!\'\"')
-        if len(w) > 3 and w not in STOP_WORDS:
-            words.append(w)
-    return words
+# Source priority keywords
+_BOOK_KW     = {'book','novel','read','author','story','literature','fiction',
+                'written','wrote','chapter','classic','tale','poem','poetry',
+                'prose','narrative','adventure','romance','recommend'}
+_REPAIR_KW   = {'repair','fix','broken','replace','install','disassemble',
+                'teardown','guide','manual','screen','battery',
+                'keyboard','laptop','phone','iphone','macbook','device','hardware'}
+_RESEARCH_KW = {'research','paper','study','abstract','arxiv','journal',
+                'algorithm','neural','dataset','experiment','findings',
+                'analysis','theorem','published','methodology'}
+_TRAVEL_KW   = {'travel','visit','trip','tourism','tourist','destination',
+                'hotel','flight','airport','itinerary','vacation','holiday',
+                'backpack','hostel','attractions','passport','visa'}
+_LEARN_KW    = {'learn','explain','understand','definition','concept','theory',
+                'textbook','course','lesson','introduction','basics',
+                'overview','fundamentals','examples','exercises'}
+
+
+def _words(text):
+    return set(w.strip('.,?!\'"') for w in text.lower().split())
+
+
+def _priority_sources(query):
+    w = _words(query)
+    if w & _REPAIR_KW:   return ['ifixit',    'wikipedia']
+    if w & _RESEARCH_KW: return ['arxiv',      'wikipedia']
+    if w & _TRAVEL_KW:   return ['wikivoyage', 'wikipedia']
+    if w & _BOOK_KW:     return ['gutenberg',  'wikibooks', 'wikipedia']
+    if w & _LEARN_KW:    return ['wikibooks',  'wikipedia']
+    return ['wikipedia', 'wikibooks', 'wikivoyage', 'gutenberg', 'ifixit', 'arxiv']
+
+
+def _search_words(query):
+    return [w for w in _words(query) if len(w) > 3 and w not in STOP_WORDS]
+
+
+# ============================================================
+#  QUERY CLASSIFIER
+# ============================================================
+_CONVERSATIONAL = re.compile(
+    r'^(hi|hello|hey|thanks|thank you|good morning|good evening|how are you|'
+    r"what's up|sup|ok|okay|sure|yes|no|bye|goodbye|lol|haha|cool|nice|great|"
+    r'awesome|perfect|got it|i see|makes sense|interesting|wow|really)',
+    re.IGNORECASE
+)
+
+def _should_search(query):
+    q = query.strip()
+    if len(q) < 12:
+        return False
+    if re.match(r'^[\d\s\+\-\*\/\^\(\)\.=]+$', q):
+        return False
+    if len(q) < 40 and _CONVERSATIONAL.match(q):
+        return False
+    return True
 
 
 # ============================================================
 #  PRE-SEARCH
 # ============================================================
-def pre_search(query, limit=8):
-    """
-    Search the DB for documents relevant to the query.
-    If it looks like a book query, prioritise Gutenberg results.
-    """
+def pre_search(query, limit=6):
     candidates = []
     seen_ids   = set()
-    book_mode  = is_book_query(query)
+    words      = _search_words(query)
+    sources    = _priority_sources(query)
+
+    if not words:
+        return []
 
     def add(qs):
         for doc in qs:
@@ -71,98 +135,51 @@ def pre_search(query, limit=8):
                 seen_ids.add(doc.id)
                 candidates.append(doc)
 
-    words = get_search_words(query)
+    primary   = sources[:2]
+    secondary = sources[2:]
 
-    if book_mode:
-        # --- BOOK QUERY: search Gutenberg first ---
+    for source_group in [primary, secondary]:
+        if len(candidates) >= limit:
+            break
+        remaining = limit - len(candidates)
 
-        # exact phrase in book titles
         add(Document.objects.filter(
             title__icontains=query,
-            source_type='gutenberg',
+            source_type__in=source_group,
             is_active=True
-        )[:3])
+        )[:2])
 
-        # all meaningful words in book title (AND)
-        if words:
-            q = Q()
+        if words and len(candidates) < limit:
+            q_obj = Q()
             for w in words:
-                q &= Q(title__icontains=w)
+                q_obj &= Q(title__icontains=w)
             add(Document.objects.filter(
-                q, source_type='gutenberg', is_active=True
-            ).order_by('title')[:limit])
-
-        # any meaningful word in book title (OR)
-        if words:
-            q = Q()
-            for w in words:
-                q |= Q(title__icontains=w)
-            add(Document.objects.filter(
-                q, source_type='gutenberg', is_active=True
-            ).order_by('title')[:limit])
-
-        # any word in book summary
-        if words:
-            q = Q()
-            for w in words:
-                q |= Q(summary__icontains=w)
-            add(Document.objects.filter(
-                q, source_type='gutenberg', is_active=True
-            ).order_by('title')[:limit])
-
-        # author name match
-        if words:
-            q = Q()
-            for w in words:
-                q |= Q(author__icontains=w)
-            add(Document.objects.filter(
-                q, source_type='gutenberg', is_active=True
-            ).order_by('title')[:limit])
-
-        # top up with wikipedia only if we have room
-        remaining = limit - len(candidates)
-        if remaining > 0 and words:
-            q = Q()
-            for w in words:
-                q |= Q(title__icontains=w)
-            add(Document.objects.filter(
-                q, source_type='wikipedia', is_active=True
+                q_obj, source_type__in=source_group, is_active=True
             ).order_by('title')[:remaining])
 
-    else:
-        # --- GENERAL QUERY: search all sources ---
-
-        # exact phrase in title
-        add(Document.objects.filter(
-            title__icontains=query, is_active=True
-        )[:3])
-
-        # all words in title (AND) — high precision
-        if words:
-            q = Q()
+        if words and len(candidates) < limit:
+            q_obj = Q()
             for w in words:
-                q &= Q(title__icontains=w)
+                q_obj |= Q(title__icontains=w)
             add(Document.objects.filter(
-                q, is_active=True
-            ).order_by('title')[:limit])
+                q_obj, source_type__in=source_group, is_active=True
+            ).order_by('title')[:remaining])
 
-        # any word in title (OR) — broader recall
-        if words:
-            q = Q()
+        if words and len(candidates) < limit:
+            q_obj = Q()
             for w in words:
-                q |= Q(title__icontains=w)
+                q_obj |= Q(summary__icontains=w)
             add(Document.objects.filter(
-                q, is_active=True
-            ).order_by('title')[:limit])
+                q_obj, source_type__in=source_group, is_active=True
+            ).order_by('title')[:remaining])
 
-        # any word in summary
-        if words:
-            q = Q()
+        if words and len(candidates) < limit:
+            q_obj = Q()
             for w in words:
-                q |= Q(summary__icontains=w)
+                q_obj |= Q(author__icontains=w)
             add(Document.objects.filter(
-                q, is_active=True
-            ).order_by('title')[:limit])
+                q_obj, source_type__in=source_group, is_active=True
+            ).order_by('title')[:remaining])
 
     return candidates[:limit]
 
@@ -173,54 +190,16 @@ def pre_search(query, limit=8):
 def build_context(docs):
     if not docs:
         return None
-
-    lines = ['CONTEXT — documents available in the database:\n']
+    lines = ['CONTEXT — documents from your local library:\n']
     for doc in docs:
         author_part  = f' by {doc.author}' if doc.author else ''
-        source_part  = f'[{doc.source_type}]'
-        summary_part = (doc.summary or '')[:200]
+        summary_part = (doc.summary or '')[:300]
         lines.append(
             f'- SLUG: {doc.slug}\n'
-            f'  TITLE: {doc.title}{author_part} {source_part}\n'
-            f'  SUMMARY: {summary_part}\n'
+            f'  [{doc.source_type.upper()}] {doc.title}{author_part}\n'
+            f'  {summary_part}\n'
         )
     return '\n'.join(lines)
-
-
-# ============================================================
-#  PROMPT TEMPLATES
-# ============================================================
-SYSTEM_PROMPT = """You are NET-1, an intelligent assistant with access to a local knowledge database of Wikipedia articles and classic literature books.
-
-Relevant documents from the database are provided as CONTEXT below.
-You MUST select sources only from the CONTEXT — never invent slugs or titles.
-
-Respond in this exact format:
-SOURCES: <comma-separated slugs from context, or NONE>
-ANSWER: <your answer in 2-4 sentences>
-
-Rules:
-- SOURCES: use exact slugs as shown, e.g: slug-one,slug-two
-- Maximum 3 slugs, only genuinely relevant ones
-- SOURCES: NONE if nothing in context is relevant
-- No thinking, reasoning, or extra text
-- No markdown formatting"""
-
-
-SYSTEM_PROMPT_NO_CONTEXT = """You are NET-1, an intelligent assistant with access to a local knowledge database of Wikipedia articles and classic literature books.
-
-If the query needs a knowledge article or book:
-ARTICLE: <exact title>
-ANSWER: <your answer in 2-4 sentences>
-
-If conversational or needs no article:
-ARTICLE: NONE
-ANSWER: <your response>
-
-Rules:
-- Always use exactly this format
-- No thinking, reasoning, or extra text
-- No markdown formatting"""
 
 
 # ============================================================
@@ -229,153 +208,50 @@ Rules:
 def resolve_slugs(slug_string):
     if not slug_string or slug_string.strip().upper() == 'NONE':
         return []
-
     slugs = [s.strip() for s in slug_string.split(',') if s.strip()]
     docs  = []
     for slug in slugs[:3]:
         try:
-            doc = Document.objects.get(slug=slug, is_active=True)
-            docs.append(doc)
+            docs.append(Document.objects.get(slug=slug, is_active=True))
         except Document.DoesNotExist:
             continue
     return docs
 
 
 # ============================================================
-#  FALLBACK SEARCH + RERANK
-# ============================================================
-def search_candidates(title, limit=8):
-    if not title:
-        return []
-
-    candidates = []
-    seen_ids   = set()
-
-    def add(qs):
-        for doc in qs:
-            if doc.id not in seen_ids:
-                seen_ids.add(doc.id)
-                candidates.append(doc)
-
-    add(Document.objects.filter(title__iexact=title, is_active=True)[:1])
-    add(Document.objects.filter(title__istartswith=title, is_active=True)[:limit])
-    add(Document.objects.filter(title__icontains=title, is_active=True)[:limit])
-
-    words = [w for w in title.split() if len(w) > 3]
-    if words:
-        q = Q()
-        for word in words:
-            q &= Q(title__icontains=word)
-        add(Document.objects.filter(q, is_active=True).order_by('title')[:limit])
-
-    return candidates[:limit]
-
-
-def rerank(query, suggested_title, candidates, top_n=3):
-    if not candidates:
-        return []
-    if len(candidates) <= top_n:
-        return candidates
-
-    candidate_list = '\n'.join(
-        [f"{i+1}. {doc.title} [{doc.source_type}]" for i, doc in enumerate(candidates)]
-    )
-
-    prompt = (
-        f"User query: {query}\n"
-        f"Suggested title: {suggested_title}\n\n"
-        f"Candidates:\n{candidate_list}\n\n"
-        f"Return the numbers of the TOP {top_n} most relevant in order.\n"
-        f"Reply with ONLY comma-separated numbers e.g: 1,3,2\n"
-        f"If none are relevant reply with: NONE"
-    )
-
-    try:
-        response = client.chat(
-            model=OLLAMA_MODEL,
-            messages=[{'role': 'user', 'content': prompt}],
-            options={'temperature': 0.1, 'num_predict': 20},
-            think=False,
-        )
-        raw = response.message.content.strip()
-        if raw.upper() == 'NONE':
-            return []
-        indices = []
-        for part in raw.split(','):
-            try:
-                idx = int(part.strip()) - 1
-                if 0 <= idx < len(candidates):
-                    indices.append(idx)
-            except ValueError:
-                continue
-        return [candidates[i] for i in indices[:top_n]] if indices else candidates[:top_n]
-    except Exception:
-        return candidates[:top_n]
-
-
-# ============================================================
 #  MAIN FUNCTION
 # ============================================================
 def ask(query):
-    """
-    Pipeline:
-    1. Pre-search DB — book-aware, filters noise words
-    2. If hits found — inject as context, LLM picks slugs
-    3. If no hits — LLM suggests title, fallback rerank
-    """
     try:
-        context_docs = pre_search(query)
-        context      = build_context(context_docs)
+        messages     = [{'role': 'system', 'content': SYSTEM_PROMPT}]
+        context_docs = []
 
-        if context:
-            user_message = f"{context}\n\nUser query: {query}"
+        if _should_search(query):
+            context_docs = pre_search(query)
 
-            response = client.chat(
-                model=OLLAMA_MODEL,
-                messages=[
-                    {'role': 'system', 'content': SYSTEM_PROMPT},
-                    {'role': 'user',   'content': user_message},
-                ],
-                options={'temperature': 0.3, 'num_predict': 400},
-                think=False,
-            )
-
-            raw    = response.message.content.strip()
-            parsed = _parse_context_response(raw)
-
-            top_docs = resolve_slugs(parsed['sources'])
-
-            # fallback — LLM said NONE but we had context, use top results
-            if not top_docs and context_docs:
-                top_docs = context_docs[:3]
-
+        if context_docs:
+            context      = build_context(context_docs)
+            user_message = f"{context}\n\nUser: {query}"
         else:
-            # no pre-search hits — LLM suggests title blindly
-            response = client.chat(
-                model=OLLAMA_MODEL,
-                messages=[
-                    {'role': 'system', 'content': SYSTEM_PROMPT_NO_CONTEXT},
-                    {'role': 'user',   'content': query},
-                ],
-                options={'temperature': 0.3, 'num_predict': 300},
-                think=False,
-            )
+            user_message = query
 
-            raw    = response.message.content.strip()
-            parsed = _parse_no_context_response(raw)
+        messages.append({'role': 'user', 'content': user_message})
 
-            needs_article = parsed.get('article_title') not in (None, 'NONE', 'none', '')
+        response = client.chat(
+            model   = OLLAMA_MODEL,
+            messages= messages,
+            options = {'temperature': 0.7, 'num_predict': 600},
+            think   = False,
+        )
 
-            if not needs_article:
-                return {
-                    'answer'       : parsed['answer'],
-                    'sources'      : [],
-                    'found'        : False,
-                    'needs_article': False,
-                }
+        raw    = response.message.content.strip()
+        parsed = _parse_response(raw)
 
-            candidates = search_candidates(parsed['article_title'])
-            top_docs   = rerank(query, parsed['article_title'], candidates)
+        top_docs = resolve_slugs(parsed['sources'])
+
+        # only surface a fallback article if user explicitly asked for one
+        if not top_docs and context_docs and _explicitly_wants_source(query):
+            top_docs = context_docs[:1]
 
         sources = [
             {
@@ -389,55 +265,38 @@ def ask(query):
         ]
 
         return {
-            'answer'       : parsed['answer'],
-            'sources'      : sources,
-            'found'        : len(sources) > 0,
-            'needs_article': True,
+            'answer' : parsed['answer'],
+            'sources': sources,
+            'found'  : len(sources) > 0,
         }
 
     except Exception as e:
         return {
-            'answer'       : f'ERROR: Could not connect to LLM — {str(e)}',
-            'sources'      : [],
-            'found'        : False,
-            'needs_article': False,
+            'answer' : f'Something went wrong connecting to the LLM — {str(e)}',
+            'sources': [],
+            'found'  : False,
         }
 
 
-# ============================================================
-#  RESPONSE PARSERS
-# ============================================================
-def _parse_context_response(raw):
-    sources = None
-    answer  = None
+def _explicitly_wants_source(query):
+    triggers = {
+        'find', 'show', 'search', 'article', 'book', 'read', 'guide',
+        'paper', 'source', 'reference', 'look up', 'recommend', 'suggest',
+        'what is', 'who is', 'tell me about',
+    }
+    q = query.lower()
+    return any(t in q for t in triggers)
 
-    sources_match = re.search(r'SOURCES:\s*(.+)', raw)
+
+# ============================================================
+#  RESPONSE PARSER
+# ============================================================
+def _parse_response(raw):
+    sources       = None
+    sources_match = re.search(r'\bSOURCES:\s*(.+?)(?:\n|$)', raw, re.IGNORECASE)
     if sources_match:
         sources = sources_match.group(1).strip()
-
-    answer_match = re.search(r'ANSWER:\s*(.+)', raw, re.DOTALL)
-    if answer_match:
-        answer = answer_match.group(1).strip()
-
-    if not answer:
-        answer = raw
-
+        answer  = raw[:sources_match.start()].strip()
+    else:
+        answer  = raw.strip()
     return {'answer': answer, 'sources': sources}
-
-
-def _parse_no_context_response(raw):
-    article_title = None
-    answer        = None
-
-    article_match = re.search(r'ARTICLE:\s*(.+)', raw)
-    if article_match:
-        article_title = article_match.group(1).strip()
-
-    answer_match = re.search(r'ANSWER:\s*(.+)', raw, re.DOTALL)
-    if answer_match:
-        answer = answer_match.group(1).strip()
-
-    if not answer:
-        answer = raw
-
-    return {'answer': answer, 'article_title': article_title}

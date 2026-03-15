@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <title>NET-1 // CATALOGUE</title>
+
+    <script src="{% static 'interface/theme.js' %}"></script>
+
+    <style>
+        /* ── RESET & BASE ───────────────────────────────── */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--t-bg);
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── NAVBAR ─────────────────────────────────────── */
+        .navbar {
+            width: 100%;
+            background: var(--t-bg2);
+            border-bottom: 1px solid var(--t-border-hi);
+            padding: 0 1.5rem;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 12px color-mix(in srgb, var(--t-accent) 10%, transparent);
+        }
+
+        .navbar-left { display: flex; align-items: center; gap: 1.2rem; }
+
+        .navbar-logo {
+            font-size: 1rem;
+            font-weight: bold;
+            letter-spacing: 0.4rem;
+            color: var(--t-accent);
+            text-shadow: 0 0 10px color-mix(in srgb, var(--t-accent) 50%, transparent);
+            text-decoration: none;
+        }
+
+        .navbar-sep {
+            color: var(--t-border-hi);
+            font-size: 0.8rem;
+        }
+
+        .navbar-page {
+            font-size: 0.65rem;
+            letter-spacing: 0.25rem;
+            color: var(--t-text-dim);
+        }
+
+        .navbar-right { display: flex; align-items: center; gap: 1rem; }
+
+        .nav-user {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: var(--t-text-dim);
+        }
+        .nav-user span {
+            color: var(--t-accent);
+            text-shadow: 0 0 8px color-mix(in srgb, var(--t-accent) 50%, transparent);
+        }
+
+        .btn-settings {
+            background: transparent;
+            border: 1px solid var(--t-border);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            width: 30px; height: 30px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-settings:hover { border-color: var(--t-accent); color: var(--t-accent); }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--t-accent);
+            color: var(--t-accent);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.2rem;
+            padding: 0.3rem 0.8rem;
+            cursor: pointer;
+            box-shadow: 0 0 6px color-mix(in srgb, var(--t-accent) 20%, transparent);
+            transition: all 0.2s;
+        }
+        .btn-logout:hover {
+            background: var(--t-accent);
+            color: var(--t-bg);
+            box-shadow: 0 0 15px color-mix(in srgb, var(--t-accent) 50%, transparent);
+        }
+
+        /* ── MAIN LAYOUT ─────────────────────────────────── */
+        .main {
+            flex: 1;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ── HEADER ──────────────────────────────────────── */
+        .catalogue-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .catalogue-title {
+            font-size: 0.65rem;
+            letter-spacing: 0.3rem;
+            color: var(--t-accent2);
+        }
+
+        /* ── SEARCH BAR ──────────────────────────────────── */
+        .search-bar {
+            display: flex;
+            border: 1px solid var(--t-border-hi);
+            background: var(--t-surface);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-bar:focus-within {
+            border-color: var(--t-accent);
+            box-shadow: 0 0 16px color-mix(in srgb, var(--t-accent) 20%, transparent);
+        }
+
+        .search-prefix {
+            padding: 0 1rem;
+            color: var(--t-accent);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            border-right: 1px solid var(--t-border);
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            padding: 0.9rem 1rem;
+            outline: none;
+        }
+        .search-input::placeholder { color: var(--t-text-mute); }
+
+        .search-clear {
+            background: transparent;
+            border: none;
+            border-left: 1px solid var(--t-border);
+            color: var(--t-text-mute);
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            padding: 0 1rem;
+            cursor: pointer;
+            display: none;
+            transition: color 0.2s;
+        }
+        .search-clear:hover { color: var(--t-red); }
+        .search-clear.visible { display: flex; align-items: center; }
+
+        /* ── FILTER ROW ──────────────────────────────────── */
+        /* ── SOURCE DROPDOWN ─────────────────────────────── */
+        .source-dropdown-wrap {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .btn-source-filter {
+            background: var(--t-surface);
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.1rem;
+            padding: 0 1rem;
+            height: 100%;
+            min-height: 44px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.15s;
+            white-space: nowrap;
+            border-left: 1px solid var(--t-border);
+        }
+        .btn-source-filter:hover,
+        .btn-source-filter.open {
+            border-color: var(--t-accent);
+            color: var(--t-accent);
+        }
+
+        .source-badge {
+            background: var(--t-accent);
+            color: var(--t-bg);
+            border-radius: 20px;
+            padding: 0.1rem 0.45rem;
+            font-size: 0.52rem;
+            font-weight: bold;
+            display: none;
+        }
+        .source-badge.visible { display: inline-block; }
+
+        .source-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            background: var(--t-surface);
+            border: 1px solid var(--t-border-hi);
+            min-width: 220px;
+            z-index: 200;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .source-dropdown.open { display: block; }
+
+        .source-dropdown-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0.9rem;
+            border-bottom: 1px solid var(--t-border);
+        }
+        .source-dropdown-label {
+            font-size: 0.55rem;
+            letter-spacing: 0.15rem;
+            color: var(--t-text-mute);
+        }
+        .source-dropdown-clear {
+            background: transparent;
+            border: none;
+            color: var(--t-text-mute);
+            font-family: 'Courier New', monospace;
+            font-size: 0.55rem;
+            cursor: pointer;
+            letter-spacing: 0.08rem;
+            padding: 0;
+        }
+        .source-dropdown-clear:hover { color: var(--t-accent); }
+
+        .source-option {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 0.55rem 0.9rem;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-bottom: 1px solid var(--t-border);
+        }
+        .source-option:last-child { border-bottom: none; }
+        .source-option:hover { background: var(--t-surface2); }
+        .source-option.checked { background: color-mix(in srgb, var(--t-accent) 6%, var(--t-surface)); }
+
+        .source-checkbox {
+            width: 14px; height: 14px;
+            border: 1px solid var(--t-border-hi);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.6rem;
+            transition: all 0.1s;
+        }
+        .source-option.checked .source-checkbox {
+            background: var(--t-accent);
+            border-color: var(--t-accent);
+            color: var(--t-bg);
+        }
+
+        .source-option-icon  { font-size: 0.95rem; flex-shrink: 0; }
+        .source-option-label {
+            font-size: 0.65rem;
+            color: var(--t-text);
+            letter-spacing: 0.05rem;
+            flex: 1;
+        }
+        .source-option-count {
+            font-size: 0.55rem;
+            color: var(--t-text-mute);
+        }
+
+        /* ── TAB ROW ─────────────────────────────────────── */
+        .tab-row {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--t-border);
+        }
+
+        .tab {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.15rem;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            margin-bottom: -1px;
+            transition: all 0.15s;
+        }
+        .tab:hover { color: var(--t-text); }
+        .tab.active {
+            color: var(--t-accent);
+            border-bottom-color: var(--t-accent);
+        }
+
+        /* ── RESULTS META ────────────────────────────────── */
+        .results-meta {
+            font-size: 0.6rem;
+            color: var(--t-text-mute);
+            letter-spacing: 0.08rem;
+            min-height: 1rem;
+        }
+
+        /* ── DOCUMENT GRID ───────────────────────────────── */
+        .doc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .doc-card {
+            background: var(--t-surface);
+            border: 1px solid var(--t-border);
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        .doc-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: var(--card-colour, var(--t-accent));
+            opacity: 0.6;
+        }
+        .doc-card:hover {
+            border-color: var(--t-border-hi);
+            background: var(--t-surface2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px color-mix(in srgb, var(--t-bg) 40%, transparent);
+        }
+
+        .doc-card-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+        }
+
+        .doc-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .doc-title {
+            font-size: 0.78rem;
+            color: var(--t-text);
+            line-height: 1.4;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .doc-author {
+            font-size: 0.62rem;
+            color: var(--t-text-dim);
+            font-style: italic;
+        }
+
+        .doc-summary {
+            font-size: 0.68rem;
+            color: var(--t-text-dim);
+            line-height: 1.6;
+        }
+
+        .doc-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+        }
+
+        .doc-badge {
+            font-size: 0.52rem;
+            letter-spacing: 0.1rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 20px;
+            border: 1px solid currentColor;
+            opacity: 0.8;
+        }
+
+        /* ── PDF GRID ────────────────────────────────────── */
+        .pdf-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .pdf-card {
+            background: var(--t-surface);
+            border: 1px solid var(--t-border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .pdf-card:hover {
+            border-color: var(--t-accent);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px color-mix(in srgb, var(--t-accent) 15%, transparent);
+        }
+
+        .pdf-cover {
+            height: 200px;
+            border-bottom: 1px solid var(--t-border);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: stretch;
+        }
+
+        /* real thumbnail image */
+        .pdf-cover-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* canvas fallback fills the whole cover */
+        .pdf-cover-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .pdf-cover-category {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            font-size: 0.48rem;
+            letter-spacing: 0.08rem;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            z-index: 3;
+            backdrop-filter: blur(4px);
+        }
+
+        .pdf-info {
+            padding: 0.7rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .pdf-name {
+            font-size: 0.72rem;
+            color: var(--t-text);
+            line-height: 1.4;
+            font-weight: 600;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .pdf-meta {
+            font-size: 0.58rem;
+            color: var(--t-text-mute);
+            letter-spacing: 0.05rem;
+        }
+
+        /* ── EMPTY STATE ─────────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--t-text-mute);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .empty-state-icon { font-size: 3rem; opacity: 0.4; }
+        .empty-state-title { font-size: 0.8rem; letter-spacing: 0.2rem; }
+        .empty-state-sub { font-size: 0.68rem; max-width: 400px; line-height: 1.6; }
+
+        /* ── LOAD MORE ───────────────────────────────────── */
+        .load-more-row {
+            display: flex;
+            justify-content: center;
+            padding: 1rem 0;
+        }
+
+        .btn-load-more {
+            background: var(--t-surface);
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.15rem;
+            padding: 0.6rem 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-load-more:hover { border-color: var(--t-accent); color: var(--t-accent); }
+        .btn-load-more:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ── SECTION HEADER ──────────────────────────────── */
+        .section-header {
+            font-size: 0.6rem;
+            letter-spacing: 0.25rem;
+            color: var(--t-text-mute);
+            padding: 0.5rem 0 0.3rem;
+            border-bottom: 1px solid var(--t-border);
+            margin-bottom: 0.5rem;
+        }
+
+        /* ── SPINNER ─────────────────────────────────────── */
+        .spinner {
+            display: none;
+            width: 20px; height: 20px;
+            border: 2px solid var(--t-border);
+            border-top-color: var(--t-accent);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin: 2rem auto;
+        }
+        .spinner.active { display: block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── PDF READER MODAL ────────────────────────────── */
+        .pdf-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 500;
+            flex-direction: column;
+        }
+        .pdf-modal-overlay.active { display: flex; }
+
+        .pdf-modal-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 1.2rem;
+            background: var(--t-bg2);
+            border-bottom: 1px solid var(--t-border-hi);
+            flex-shrink: 0;
+            gap: 1rem;
+        }
+
+        .pdf-modal-title {
+            font-size: 0.7rem;
+            letter-spacing: 0.1rem;
+            color: var(--t-text);
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pdf-modal-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .btn-pdf-action {
+            background: transparent;
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.1rem;
+            padding: 0.3rem 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: all 0.15s;
+        }
+        .btn-pdf-action:hover { border-color: var(--t-accent); color: var(--t-accent); }
+        .btn-pdf-close:hover  { border-color: var(--t-red);    color: var(--t-red); }
+
+        .pdf-modal-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: #fff;
+        }
+
+        /* ── DOC READER MODAL ────────────────────────────── */
+        .doc-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .doc-modal-overlay.active { display: flex; }
+
+        .doc-modal {
+            background: var(--t-surface);
+            border: 1px solid var(--t-border-hi);
+            width: 100%;
+            max-width: 780px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .doc-modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 1.2rem 1.4rem 1rem;
+            border-bottom: 1px solid var(--t-border);
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        .doc-modal-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            flex: 1;
+        }
+
+        .doc-modal-title {
+            font-size: 1rem;
+            color: var(--t-text);
+            line-height: 1.3;
+        }
+
+        .doc-modal-sub {
+            font-size: 0.65rem;
+            color: var(--t-text-dim);
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .doc-modal-close {
+            background: transparent;
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-size: 0.8rem;
+            width: 30px; height: 30px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .doc-modal-close:hover { border-color: var(--t-red); color: var(--t-red); }
+
+        .doc-modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.4rem;
+            font-size: 0.82rem;
+            line-height: 1.9;
+            color: var(--t-text-dim);
+            white-space: pre-wrap;
+            scrollbar-width: thin;
+            scrollbar-color: var(--t-border-hi) transparent;
+        }
+
+        /* ── RESPONSIVE ──────────────────────────────────── */
+        @media (max-width: 600px) {
+            .doc-grid  { grid-template-columns: 1fr; }
+            .pdf-grid  { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ─────────────────────────────────────────── -->
+<nav class="navbar">
+    <div class="navbar-left">
+        <a href="{% url 'dashboard' %}" class="navbar-logo">NET-1</a>
+        <span class="navbar-sep">/</span>
+        <span class="navbar-page">CATALOGUE</span>
+    </div>
+    <div class="navbar-right">
+        <span class="nav-user">> USER: <span>{{ request.user.username|upper }}</span></span>
+        <button class="btn-settings" onclick="openThemePanel()" title="Themes">⚙</button>
+        <form method="POST" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="btn-logout" type="submit">[ LOGOUT ]</button>
+        </form>
+    </div>
+</nav>
+
+<!-- ── MAIN ───────────────────────────────────────────── -->
+<div class="main">
+
+    <!-- header -->
+    <div class="catalogue-header">
+        <div class="catalogue-title">// KNOWLEDGE CATALOGUE</div>
+    </div>
+
+    <!-- search bar + source dropdown -->
+    <div class="search-bar">
+        <div class="search-prefix">⌕</div>
+        <input
+            type="text"
+            class="search-input"
+            id="searchInput"
+            placeholder="search articles, books, guides, papers, PDFs..."
+            autocomplete="off"
+        >
+        <button class="search-clear" id="searchClear">✕</button>
+
+        <!-- source filter dropdown -->
+        <div class="source-dropdown-wrap">
+            <button class="btn-source-filter" id="sourceFilterBtn">
+                SOURCES
+                <span class="source-badge" id="sourceBadge">0</span>
+                ▾
+            </button>
+            <div class="source-dropdown" id="sourceDropdown">
+                <div class="source-dropdown-header">
+                    <span class="source-dropdown-label">FILTER BY SOURCE</span>
+                    <button class="source-dropdown-clear" id="sourceClearAll">CLEAR ALL</button>
+                </div>
+                {% for src, meta in source_meta.items %}
+                <div class="source-option" data-source="{{ src }}">
+                    <div class="source-checkbox">✓</div>
+                    <span class="source-option-icon">{{ meta.icon }}</span>
+                    <span class="source-option-label">{{ meta.label }}</span>
+                    <span class="source-option-count">{% for s, c in source_counts.items %}{% if s == src %}{{ c }}{% endif %}{% endfor %}</span>
+                </div>
+                {% endfor %}
+                <div class="source-option" data-source="__pdf__">
+                    <div class="source-checkbox">✓</div>
+                    <span class="source-option-icon">📋</span>
+                    <span class="source-option-label">PDF Library</span>
+                    <span class="source-option-count">{{ pdf_count|default:"0" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- tabs -->
+    <div class="tab-row">
+        <button class="tab active" data-tab="all">ALL</button>
+        <button class="tab" data-tab="docs">DOCUMENTS</button>
+        <button class="tab" data-tab="pdfs">PDF LIBRARY</button>
+        <a href="{% url 'pdf_library' %}" class="tab" style="text-decoration:none">📋 FULL LIBRARY →</a>
+    </div>
+
+    <!-- results meta -->
+    <div class="results-meta" id="resultsMeta">
+        Enter a search query or browse the collection
+    </div>
+
+    <!-- spinner -->
+    <div class="spinner" id="spinner"></div>
+
+    <!-- results container -->
+    <div id="resultsContainer"></div>
+
+    <!-- load more -->
+    <div class="load-more-row" id="loadMoreRow" style="display:none">
+        <button class="btn-load-more" id="loadMoreBtn">[ LOAD MORE ]</button>
+    </div>
+
+</div>
+
+<!-- ── PDF READER MODAL ───────────────────────────────── -->
+<div class="pdf-modal-overlay" id="pdfModal">
+    <div class="pdf-modal-bar">
+        <span class="pdf-modal-title" id="pdfModalTitle"></span>
+        <div class="pdf-modal-actions">
+            <a class="btn-pdf-action" id="pdfDownloadBtn" download>⬇ DOWNLOAD</a>
+            <button class="btn-pdf-action btn-pdf-close" onclick="closePdfModal()">✕ CLOSE</button>
+        </div>
+    </div>
+    <iframe class="pdf-modal-frame" id="pdfFrame" src=""></iframe>
+</div>
+
+<!-- ── DOC READER MODAL ───────────────────────────────── -->
+<div class="doc-modal-overlay" id="docModal">
+    <div class="doc-modal">
+        <div class="doc-modal-header">
+            <div class="doc-modal-meta">
+                <div class="doc-modal-title" id="docModalTitle"></div>
+                <div class="doc-modal-sub" id="docModalSub"></div>
+            </div>
+            <button class="doc-modal-close" onclick="closeDocModal()">✕</button>
+        </div>
+        <div class="doc-modal-body" id="docModalBody">Loading...</div>
+    </div>
+</div>
+
+<!-- ── THEME PANEL ────────────────────────────────────── -->
+{% include "interface/theme_panel.html" %}
+
+<script>
+// ============================================================
+//  STATE
+// ============================================================
+let currentQuery  = '';
+// selectedSources Set is defined below in dropdown section
+let currentTab    = 'all';
+let currentPage   = 1;
+let totalDocs     = 0;
+let totalPdfs     = 0;
+let isLoading     = false;
+
+const PER_PAGE    = 40;
+
+// ============================================================
+//  ELEMENTS
+// ============================================================
+const searchInput   = document.getElementById('searchInput');
+const searchClear   = document.getElementById('searchClear');
+const spinner       = document.getElementById('spinner');
+const resultsMeta   = document.getElementById('resultsMeta');
+const resultsContainer = document.getElementById('resultsContainer');
+const loadMoreRow   = document.getElementById('loadMoreRow');
+const loadMoreBtn   = document.getElementById('loadMoreBtn');
+
+// ============================================================
+//  SEARCH
+// ============================================================
+let debounceTimer;
+
+searchInput.addEventListener('input', () => {
+    currentQuery = searchInput.value.trim();
+    searchClear.classList.toggle('visible', currentQuery.length > 0);
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        currentPage = 1;
+        loadResults(true);
+    }, 320);
+});
+
+searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    currentQuery = '';
+    searchClear.classList.remove('visible');
+    currentPage = 1;
+    loadResults(true);
+});
+
+// ============================================================
+//  SOURCE DROPDOWN  (multi-select)
+// ============================================================
+let selectedSources = new Set();   // empty = all sources
+
+const sourceFilterBtn = document.getElementById('sourceFilterBtn');
+const sourceDropdown  = document.getElementById('sourceDropdown');
+const sourceBadge     = document.getElementById('sourceBadge');
+
+// toggle dropdown open/close
+sourceFilterBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = sourceDropdown.classList.toggle('open');
+    sourceFilterBtn.classList.toggle('open', isOpen);
+});
+
+// close when clicking outside
+document.addEventListener('click', (e) => {
+    if (!sourceDropdown.contains(e.target) && e.target !== sourceFilterBtn) {
+        sourceDropdown.classList.remove('open');
+        sourceFilterBtn.classList.remove('open');
+    }
+});
+
+// option click — toggle selection
+document.querySelectorAll('.source-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+        const src = opt.dataset.source;
+        if (selectedSources.has(src)) {
+            selectedSources.delete(src);
+            opt.classList.remove('checked');
+        } else {
+            selectedSources.add(src);
+            opt.classList.add('checked');
+        }
+        updateSourceBadge();
+        currentPage = 1;
+        loadResults(true);
+    });
+});
+
+// clear all
+document.getElementById('sourceClearAll').addEventListener('click', (e) => {
+    e.stopPropagation();
+    selectedSources.clear();
+    document.querySelectorAll('.source-option').forEach(o => o.classList.remove('checked'));
+    updateSourceBadge();
+    currentPage = 1;
+    loadResults(true);
+});
+
+function updateSourceBadge() {
+    const n = selectedSources.size;
+    sourceBadge.textContent = n;
+    sourceBadge.classList.toggle('visible', n > 0);
+    sourceFilterBtn.style.color = n > 0 ? 'var(--t-accent)' : '';
+}
+
+// ============================================================
+//  TABS
+// ============================================================
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => setTab(tab.dataset.tab));
+});
+
+function setTab(name) {
+    currentTab = name;
+    document.querySelectorAll('.tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === name);
+    });
+    currentPage = 1;
+    loadResults(true);
+}
+
+// ============================================================
+//  LOAD RESULTS
+// ============================================================
+async function loadResults(reset = false) {
+    if (isLoading) return;
+    isLoading = true;
+
+    if (reset) {
+        resultsContainer.innerHTML = '';
+        loadMoreRow.style.display  = 'none';
+        totalDocs = 0;
+        totalPdfs = 0;
+    }
+
+    spinner.classList.add('active');
+
+    const params = new URLSearchParams({
+        q      : currentQuery,
+        sources: Array.from(selectedSources).join(','),
+        tab    : currentTab,
+        page   : currentPage,
+    });
+
+    try {
+        const resp = await fetch(`{% url 'catalogue_search' %}?${params}`);
+        const data = await resp.json();
+
+        totalDocs = data.total_docs || 0;
+        totalPdfs = data.total_pdfs || 0;
+
+        renderResults(data, reset);
+        updateMeta();
+        updateLoadMore(data);
+
+    } catch (e) {
+        resultsContainer.innerHTML = `<div class="empty-state">
+            <div class="empty-state-icon">⚠</div>
+            <div class="empty-state-title">SEARCH ERROR</div>
+            <div class="empty-state-sub">${e.message}</div>
+        </div>`;
+    }
+
+    spinner.classList.remove('active');
+    isLoading = false;
+}
+
+function updateMeta() {
+    const parts = [];
+    if (currentTab !== 'pdfs' && totalDocs > 0) parts.push(`${totalDocs.toLocaleString()} documents`);
+    if (currentTab !== 'docs' && totalPdfs > 0)  parts.push(`${totalPdfs.toLocaleString()} PDFs`);
+    if (parts.length) {
+        resultsMeta.textContent = `// Found: ${parts.join(' · ')}`;
+    } else if (currentQuery) {
+        resultsMeta.textContent = `// No results for "${currentQuery}"`;
+    } else {
+        resultsMeta.textContent = `// Browse the collection`;
+    }
+}
+
+function updateLoadMore(data) {
+    const docsLoaded = (currentPage * PER_PAGE);
+    const pdfsLoaded = (currentPage * PER_PAGE);
+    const hasMore = (currentTab !== 'pdfs' && docsLoaded < totalDocs) ||
+                    (currentTab !== 'docs' && pdfsLoaded < totalPdfs);
+
+    loadMoreRow.style.display = hasMore ? 'flex' : 'none';
+    loadMoreBtn.disabled = false;
+}
+
+loadMoreBtn.addEventListener('click', () => {
+    currentPage++;
+    loadMoreBtn.disabled = true;
+    loadResults(false);
+});
+
+// ============================================================
+//  RENDER
+// ============================================================
+function renderResults(data, reset) {
+    const frag = document.createDocumentFragment();
+
+    // ── Documents ──
+    if (currentTab !== 'pdfs' && data.documents && data.documents.length > 0) {
+        if (reset || !document.getElementById('docSection')) {
+            const sec = document.createElement('div');
+            sec.id = 'docSection';
+            sec.innerHTML = currentTab === 'all'
+                ? '<div class="section-header">// DOCUMENTS</div>' : '';
+            const grid = document.createElement('div');
+            grid.className = 'doc-grid';
+            grid.id = 'docGrid';
+            sec.appendChild(grid);
+            frag.appendChild(sec);
+        }
+    }
+
+    if (data.documents && data.documents.length > 0) {
+        const grid = document.getElementById('docGrid') ||
+                     (() => {
+                         const g = document.createElement('div');
+                         g.className = 'doc-grid';
+                         g.id = 'docGrid';
+                         resultsContainer.appendChild(g);
+                         return g;
+                     })();
+
+        data.documents.forEach(doc => {
+            const card = document.createElement('div');
+            card.className = 'doc-card';
+            card.style.setProperty('--card-colour', doc.colour);
+            card.innerHTML = `
+                <div class="doc-card-top">
+                    <div class="doc-icon">${doc.icon}</div>
+                    <div class="doc-title">${escHtml(doc.title)}</div>
+                </div>
+                ${doc.author ? `<div class="doc-author">— ${escHtml(doc.author)}</div>` : ''}
+                <div class="doc-summary">${escHtml(doc.summary || '')}</div>
+                <div class="doc-card-footer">
+                    <span class="doc-badge" style="color:${doc.colour};border-color:${doc.colour}">
+                        ${doc.label}
+                    </span>
+                </div>
+            `;
+            card.addEventListener('click', () => openDocModal(doc.slug, doc.title));
+            (document.getElementById('docGrid') || grid).appendChild(card);
+        });
+    }
+
+    resultsContainer.appendChild(frag);
+
+    // ── PDFs ──
+    if (currentTab !== 'docs' && data.pdfs && data.pdfs.length > 0) {
+        let pdfGrid = document.getElementById('pdfGrid');
+        if (!pdfGrid || reset) {
+            const sec = document.createElement('div');
+            sec.innerHTML = currentTab === 'all'
+                ? '<div class="section-header">// PDF LIBRARY</div>' : '';
+            pdfGrid = document.createElement('div');
+            pdfGrid.className = 'pdf-grid';
+            pdfGrid.id = 'pdfGrid';
+            sec.appendChild(pdfGrid);
+            resultsContainer.appendChild(sec);
+        }
+
+        data.pdfs.forEach(pdf => {
+            const card = document.createElement('div');
+            card.className = 'pdf-card';
+            card.innerHTML = `
+                <div class="pdf-cover" data-filepath="${escHtml(pdf.filename)}">
+                    ${pdf.thumb_url
+                        ? `<img class="pdf-cover-img" src="${escHtml(pdf.thumb_url)}" alt="${escHtml(pdf.name)}" loading="lazy">`
+                        : `<canvas class="pdf-cover-canvas" width="180" height="200"
+                                data-name="${escHtml(pdf.name)}"></canvas>`
+                    }
+                    <span class="pdf-cover-category">${escHtml(pdf.category)}</span>
+                </div>
+                <div class="pdf-info">
+                    <div class="pdf-name">${escHtml(pdf.name)}</div>
+                    <div class="pdf-meta">${escHtml(pdf.size)}</div>
+                </div>
+            `;
+            card.addEventListener('click', () => openPdfModal(pdf.filename, pdf.name));
+            pdfGrid.appendChild(card);
+        });
+        // draw covers after cards are in DOM
+        requestAnimationFrame(drawAllCovers);
+    }
+
+    // ── Empty state ──
+    if (reset && resultsContainer.children.length === 0) {
+        resultsContainer.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <div class="empty-state-title">NOTHING FOUND</div>
+                <div class="empty-state-sub">
+                    ${currentQuery
+                        ? `No results for "${escHtml(currentQuery)}". Try different keywords.`
+                        : 'No documents available. Run the data parsers to populate the catalogue.'}
+                </div>
+            </div>
+        `;
+    }
+}
+
+// ============================================================
+//  PDF MODAL
+// ============================================================
+const pdfModal      = document.getElementById('pdfModal');
+const pdfFrame      = document.getElementById('pdfFrame');
+const pdfModalTitle = document.getElementById('pdfModalTitle');
+const pdfDownloadBtn = document.getElementById('pdfDownloadBtn');
+
+function openPdfModal(filepath, name) {
+    const url = `/data-master/catalogue/pdf/${filepath}`;
+    pdfModalTitle.textContent = name;
+    pdfFrame.src              = url;
+    pdfDownloadBtn.href       = url;
+    pdfModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePdfModal() {
+    pdfModal.classList.remove('active');
+    pdfFrame.src = '';
+    document.body.style.overflow = '';
+}
+
+// ============================================================
+//  DOC MODAL
+// ============================================================
+const docModal      = document.getElementById('docModal');
+const docModalTitle = document.getElementById('docModalTitle');
+const docModalSub   = document.getElementById('docModalSub');
+const docModalBody  = document.getElementById('docModalBody');
+
+async function openDocModal(slug, title) {
+    docModalTitle.textContent = title;
+    docModalSub.innerHTML     = '';
+    docModalBody.textContent  = 'Loading...';
+    docModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    try {
+        const resp = await fetch(`/data-master/article/${slug}/json/`);
+        const data = await resp.json();
+
+        docModalSub.innerHTML = [
+            data.author     ? `<span>by ${escHtml(data.author)}</span>` : '',
+            data.source_type ? `<span>${escHtml(data.source_type.toUpperCase())}</span>` : '',
+        ].filter(Boolean).join('<span style="opacity:0.3">·</span>');
+
+        docModalBody.textContent = data.full_text || '(no content)';
+
+    } catch (e) {
+        docModalBody.textContent = 'Error loading document.';
+    }
+}
+
+function closeDocModal() {
+    docModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// close on overlay click
+docModal.addEventListener('click', e => { if (e.target === docModal) closeDocModal(); });
+
+// ESC to close any modal
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closePdfModal(); closeDocModal(); }
+});
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function escHtml(s) {
+    return String(s || '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================================
+//  PDF COVER CANVAS GENERATOR
+// ============================================================
+
+// Palette of cover colour pairs [bg-top, bg-bottom, text]
+const COVER_PALETTES = [
+    ['#1a1a2e', '#16213e', '#e94560'],
+    ['#0f3460', '#533483', '#e94560'],
+    ['#1b262c', '#0f4c75', '#1b98e0'],
+    ['#2d4a22', '#1a2e12', '#7ec850'],
+    ['#2c1654', '#4a1942', '#e040fb'],
+    ['#1a0a00', '#3d1a00', '#ff6d00'],
+    ['#002b36', '#073642', '#2aa198'],
+    ['#1a1a1a', '#2d2d2d', '#f59e0b'],
+    ['#1e0a0a', '#3a0a0a', '#ef4444'],
+    ['#0a1628', '#0f2040', '#60a5fa'],
+    ['#1a2e1a', '#2d4a2d', '#34d399'],
+    ['#2e1a2e', '#4a2d4a', '#f472b6'],
+];
+
+function hashStr(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+        h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+    }
+    return Math.abs(h);
+}
+
+function drawPdfCover(canvas) {
+    const name     = canvas.dataset.name     || 'Document';
+    const ctx      = canvas.getContext('2d');
+    const w        = canvas.width;
+    const h        = canvas.height;
+
+    const palette  = COVER_PALETTES[hashStr(name) % COVER_PALETTES.length];
+    const [c1, c2, accent] = palette;
+
+    // background gradient
+    const grad = ctx.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, c1);
+    grad.addColorStop(1, c2);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // subtle grid lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth   = 1;
+    for (let x = 0; x < w; x += 18) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+    for (let y = 0; y < h; y += 18) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+
+    // accent bar at top
+    ctx.fillStyle = accent;
+    ctx.fillRect(0, 0, w, 3);
+
+    // accent corner triangle
+    ctx.fillStyle   = accent + '33';
+    ctx.beginPath();
+    ctx.moveTo(w, 0);
+    ctx.lineTo(w, 60);
+    ctx.lineTo(w - 60, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // PDF icon
+    ctx.font      = '2.2rem serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('📄', w / 2, h / 2 - 14);
+
+    // title text — wrap to 2 lines max
+    const words    = name.split(' ');
+    const maxWidth = w - 20;
+    ctx.fillStyle  = '#ffffff';
+    ctx.font       = `bold ${Math.min(13, Math.max(9, 130 / Math.max(name.length, 1)))}px sans-serif`;
+    ctx.textAlign  = 'center';
+
+    let line  = '';
+    let lines = [];
+    for (const word of words) {
+        const test = line ? line + ' ' + word : word;
+        if (ctx.measureText(test).width > maxWidth && line) {
+            lines.push(line);
+            line = word;
+            if (lines.length >= 2) break;
+        } else {
+            line = test;
+        }
+    }
+    if (line && lines.length < 2) lines.push(line);
+
+    const lineH  = 18;
+    const startY = h / 2 + 24;
+    lines.forEach((l, i) => {
+        ctx.fillText(l, w / 2, startY + i * lineH);
+    });
+
+    // accent dot row at bottom
+    ctx.fillStyle = accent;
+    for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.arc(w / 2 - 24 + i * 12, h - 12, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawAllCovers() {
+    // only draw canvas placeholders for PDFs without a real thumbnail
+    document.querySelectorAll('.pdf-cover-canvas').forEach(c => drawPdfCover(c));
+}
+
+// ============================================================
+//  INIT — load on page ready
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    loadResults(true);
+});
+</script>
+
+</body>
+</html>

@@ -47,7 +47,7 @@
             width: 100%;
             background-color: var(--bg-secondary);
             border-bottom: 1px solid var(--accent-primary);
-            box-shadow: 0 0 15px rgba(220, 20, 60, 0.15);
+            box-shadow: 0 0 15px color-mix(in srgb, var(--t-accent) 15%, transparent);
             padding: 0 1.5rem;
             height: 50px;
             display: flex;
@@ -80,7 +80,7 @@
 
         .user-info span {
             color: var(--text-primary);
-            text-shadow: 0 0 8px var(--accent-primary);
+            text-shadow: 0 0 8px var(--t-accent);
         }
 
         .btn-settings {
@@ -113,14 +113,14 @@
             letter-spacing: 0.2rem;
             padding: 0.3rem 0.8rem;
             cursor: pointer;
-            box-shadow: 0 0 6px rgba(220, 20, 60, 0.2);
+            box-shadow: 0 0 6px color-mix(in srgb, var(--t-accent) 20%, transparent);
             transition: all 0.2s ease;
         }
 
         .btn-logout:hover {
             background: var(--accent-primary);
             color: var(--bg-primary);
-            box-shadow: 0 0 15px rgba(220, 20, 60, 0.5);
+            box-shadow: 0 0 15px color-mix(in srgb, var(--t-accent) 50%, transparent);
         }
 
         /* ============================================
@@ -227,19 +227,19 @@
         .c-card.pos-center {
             width: 200px; height: 200px;
             border-color: var(--accent-primary);
-            box-shadow: 0 0 25px rgba(220, 20, 60, 0.3), inset 0 0 20px rgba(220, 20, 60, 0.03);
+            box-shadow: 0 0 25px color-mix(in srgb, var(--t-accent) 30%, transparent), inset 0 0 20px color-mix(in srgb, var(--t-accent) 3%, transparent);
             opacity: 1; z-index: 3;
             transform: translateX(0) scale(1);
         }
 
         .c-card.pos-center:hover {
             transform: translateX(0) scale(1.06);
-            box-shadow: 0 0 40px rgba(220, 20, 60, 0.5), 0 0 80px rgba(220, 20, 60, 0.15), inset 0 0 30px rgba(220, 20, 60, 0.06);
+            box-shadow: 0 0 40px color-mix(in srgb, var(--t-accent) 50%, transparent), 0 0 80px color-mix(in srgb, var(--t-accent) 15%, transparent), inset 0 0 30px color-mix(in srgb, var(--t-accent) 6%, transparent);
             border-color: var(--accent-secondary);
         }
 
-        .c-card.pos-center:hover .c-card-title { text-shadow: 0 0 15px var(--accent-primary), 0 0 30px rgba(220, 20, 60, 0.5); }
-        .c-card.pos-center:hover .c-card-enter { text-shadow: 0 0 8px var(--accent-primary); }
+        .c-card.pos-center:hover .c-card-title { text-shadow: 0 0 15px var(--t-accent), 0 0 30px color-mix(in srgb, var(--t-accent) 50%, transparent); }
+        .c-card.pos-center:hover .c-card-enter { text-shadow: 0 0 8px var(--t-accent); }
 
         .c-card.pos-left {
             width: 160px; height: 160px;
@@ -320,7 +320,7 @@
         .dot.active {
             background: var(--accent-primary);
             border-color: var(--accent-primary);
-            box-shadow: 0 0 6px rgba(220, 20, 60, 0.5);
+            box-shadow: 0 0 6px color-mix(in srgb, var(--t-accent) 50%, transparent);
         }
 
         /* ============================================
@@ -360,7 +360,7 @@
         .status-row:last-child { border-bottom: none; }
         .status-label { color: var(--text-secondary); letter-spacing: 0.1rem; }
         .status-online  { color: #00ff41; text-shadow: 0 0 6px rgba(0, 255, 65, 0.5); }
-        .status-offline { color: var(--accent-primary); text-shadow: 0 0 6px rgba(220, 20, 60, 0.5); }
+        .status-offline { color: var(--accent-primary); text-shadow: 0 0 6px color-mix(in srgb, var(--t-accent) 50%, transparent); }
 
         .sync-row { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid rgba(0, 53, 64, 0.5); }
         .sync-row:last-child { border-bottom: none; }
@@ -368,7 +368,7 @@
         .sync-value { color: var(--text-primary); }
 
         .progress-bar { width: 100%; height: 3px; background: var(--accent-faint); margin-top: 1rem; }
-        .progress-fill { height: 100%; width: 72%; background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary)); box-shadow: 0 0 8px rgba(220, 20, 60, 0.4); }
+        .progress-fill { height: 100%; width: 72%; background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary)); box-shadow: 0 0 8px color-mix(in srgb, var(--t-accent) 40%, transparent); }
         .progress-label { font-size: 0.65rem; color: var(--text-secondary); margin-top: 0.4rem; text-align: right; }
 
         /* ============================================
@@ -505,8 +505,8 @@
         .msg-user { display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-end; }
         .msg-user-label { font-size: 0.6rem; letter-spacing: 0.2rem; color: var(--accent-primary); }
         .msg-user-text {
-            background: rgba(220, 20, 60, 0.08);
-            border: 1px solid rgba(220, 20, 60, 0.2);
+            background: color-mix(in srgb, var(--t-accent) 8%, transparent);
+            border: 1px solid color-mix(in srgb, var(--t-accent) 20%, transparent);
             color: var(--text-secondary);
             font-size: 0.78rem;
             padding: 0.6rem 0.9rem;
@@ -652,7 +652,7 @@
             flex-shrink: 0;
         }
 
-        .modal-title { font-size: 0.8rem; letter-spacing: 0.2rem; color: var(--text-primary); text-shadow: 0 0 8px var(--accent-primary); }
+        .modal-title { font-size: 0.8rem; letter-spacing: 0.2rem; color: var(--text-primary); text-shadow: 0 0 8px var(--t-accent); }
 
         .modal-close {
             background: transparent;
@@ -777,6 +777,26 @@
             background: #e8f4e8;
             color: #1a5c1a;
             border: 1px solid #a8d4a8;
+        }
+        .article-badge.wikibooks {
+            background: #fff4e0;
+            color: #7a4a00;
+            border: 1px solid #f0c060;
+        }
+        .article-badge.wikivoyage {
+            background: #e0f0ff;
+            color: #004a8c;
+            border: 1px solid #80b8f0;
+        }
+        .article-badge.ifixit {
+            background: #ffe8e8;
+            color: #8c1a1a;
+            border: 1px solid #f0a0a0;
+        }
+        .article-badge.arxiv {
+            background: #f0e8ff;
+            color: #4a1a8c;
+            border: 1px solid #c0a0f0;
         }
 
         .article-author {
@@ -987,10 +1007,10 @@
                 <div class="carousel">
                     <button class="carousel-arrow left" id="arrowLeft">&lt;</button>
                     <div class="carousel-track">
-                        <div class="c-card" data-index="0">
+                        <div class="c-card" data-index="0" data-url="/data-master/catalogue/">
                             <div class="c-card-tag">01</div>
-                            <div class="c-card-title">WIKI</div>
-                            <div class="c-card-desc">Browse & search wikipedia pages</div>
+                            <div class="c-card-title">CATALOGUE</div>
+                            <div class="c-card-desc">Search articles, books, guides &amp; PDFs</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
                         <div class="c-card" data-index="1" data-url="{% url 'notes_deck' %}">
@@ -1005,7 +1025,7 @@
                             <div class="c-card-desc">Advanced search & filters</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
-                        <div class="c-card" data-index="3">
+                        <div class="c-card" data-index="3" data-url="/system-logger/">
                             <div class="c-card-tag">04</div>
                             <div class="c-card-title">SYSTEM</div>
                             <div class="c-card-desc">Monitor system health</div>
@@ -1316,7 +1336,15 @@
             // source document links — wiki and books
             if (sources && sources.length > 0) {
                 sources.forEach(source => {
-                    const icon  = source.source_type === 'gutenberg' ? '📖' : '📄';
+                    const iconMap = {
+                        'gutenberg' : '📖',
+                        'wikibooks' : '📚',
+                        'wikivoyage': '🗺️',
+                        'ifixit'    : '🔧',
+                        'arxiv'     : '🔬',
+                        'wikipedia' : '📄',
+                    };
+                    const icon = iconMap[source.source_type] || '📄';
                     const label = source.author
                         ? `${icon} ${source.title} — ${source.author}`
                         : `${icon} ${source.title}`;
@@ -1454,8 +1482,23 @@
                 .then(data => {
                     // build meta row
                     const sourceType = (data.source_type || '').toLowerCase();
-                    const badgeClass = sourceType === 'gutenberg' ? 'gutenberg' : 'wiki';
-                    const badgeLabel = sourceType === 'gutenberg' ? '📖 GUTENBERG' : '📄 WIKIPEDIA';
+                    const badgeMap = {
+                        'gutenberg' : 'gutenberg',
+                        'wikibooks' : 'wikibooks',
+                        'wikivoyage': 'wikivoyage',
+                        'ifixit'    : 'ifixit',
+                        'arxiv'     : 'arxiv',
+                    };
+                    const badgeClass = badgeMap[sourceType] || 'wiki';
+                    const labelMap = {
+                        'gutenberg' : '📖 GUTENBERG',
+                        'wikibooks' : '📚 WIKIBOOKS',
+                        'wikivoyage': '🗺️ WIKIVOYAGE',
+                        'ifixit'    : '🔧 IFIXIT',
+                        'arxiv'     : '🔬 ARXIV',
+                        'wikipedia' : '📄 WIKIPEDIA',
+                    };
+                    const badgeLabel = labelMap[sourceType] || '📄 WIKIPEDIA';
                     const readTime   = estimateReadTime(data.full_text || '');
 
                     articleHeaderMeta.innerHTML = `
