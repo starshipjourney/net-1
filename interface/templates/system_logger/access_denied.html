@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% load static %}
+    <title>NET-1 // ACCESS DENIED</title>
+    <script src="{% static 'interface/theme.js' %}"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--t-bg);
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .denied {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        .denied-code  { font-size: 4rem; color: var(--t-red); opacity: 0.4; }
+        .denied-title { font-size: 0.9rem; letter-spacing: 0.4rem; color: var(--t-red); }
+        .denied-sub   { font-size: 0.7rem; color: var(--t-text-mute); letter-spacing: 0.1rem; }
+        .denied-link  {
+            font-size: 0.65rem;
+            letter-spacing: 0.2rem;
+            color: var(--t-accent);
+            border: 1px solid var(--t-accent);
+            padding: 0.4rem 1.2rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .denied-link:hover { background: var(--t-accent); color: var(--t-bg); }
+    </style>
+</head>
+<body>
+    <div class="denied">
+        <div class="denied-code">403</div>
+        <div class="denied-title">ACCESS DENIED</div>
+        <div class="denied-sub">This page requires administrator privileges.</div>
+        <a href="{% url 'dashboard' %}" class="denied-link">[ RETURN TO DASHBOARD ]</a>
+    </div>
+</body>
+</html>

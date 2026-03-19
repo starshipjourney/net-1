@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <title>NET-1 // SYSTEM</title>
+    <script src="{% static 'interface/theme.js' %}"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--t-bg);
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── NAVBAR ─────────────────────────────────── */
+        .navbar {
+            width: 100%;
+            background: var(--t-bg2);
+            border-bottom: 1px solid var(--t-border-hi);
+            padding: 0 1.5rem;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 12px color-mix(in srgb, var(--t-accent) 10%, transparent);
+            flex-shrink: 0;
+        }
+
+        .navbar-left { display: flex; align-items: center; gap: 1.2rem; }
+
+        .navbar-logo {
+            font-size: 1rem;
+            font-weight: bold;
+            letter-spacing: 0.4rem;
+            color: var(--t-accent);
+            text-shadow: 0 0 10px color-mix(in srgb, var(--t-accent) 50%, transparent);
+            text-decoration: none;
+        }
+
+        .navbar-sep   { color: var(--t-border-hi); font-size: 0.8rem; }
+        .navbar-page  { font-size: 0.65rem; letter-spacing: 0.25rem; color: var(--t-text-dim); }
+        .navbar-right { display: flex; align-items: center; gap: 1rem; }
+
+        .nav-user { font-size: 0.7rem; color: var(--t-text-dim); }
+        .nav-user span {
+            color: var(--t-accent);
+            text-shadow: 0 0 8px color-mix(in srgb, var(--t-accent) 50%, transparent);
+        }
+
+        .btn-settings {
+            background: transparent;
+            border: 1px solid var(--t-border);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            width: 30px; height: 30px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-settings:hover { border-color: var(--t-accent); color: var(--t-accent); }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--t-accent);
+            color: var(--t-accent);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.2rem;
+            padding: 0.3rem 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover { background: var(--t-accent); color: var(--t-bg); }
+
+        /* ── MAIN ────────────────────────────────────── */
+        .main {
+            flex: 1;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ── SECTION CARD ────────────────────────────── */
+        .section-card {
+            background: var(--t-surface);
+            border: 1px solid var(--t-border);
+            position: relative;
+        }
+
+        .section-card::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px;
+            width: 10px; height: 10px;
+            border-top: 1px solid var(--t-accent2);
+            border-left: 1px solid var(--t-accent2);
+        }
+
+        .section-card::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; right: -1px;
+            width: 10px; height: 10px;
+            border-bottom: 1px solid var(--t-accent2);
+            border-right: 1px solid var(--t-accent2);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.2rem 0.8rem;
+            border-bottom: 1px solid var(--t-border);
+        }
+
+        .section-title {
+            font-size: 0.65rem;
+            letter-spacing: 0.3rem;
+            color: var(--t-accent2);
+        }
+
+        .section-body { padding: 1.2rem; }
+
+        /* ── BUTTONS ─────────────────────────────────── */
+        .btn {
+            background: transparent;
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.12rem;
+            padding: 0.45rem 1rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn:hover         { border-color: var(--t-accent); color: var(--t-accent); }
+        .btn:disabled      { opacity: 0.4; cursor: not-allowed; }
+        .btn.btn-primary   { border-color: var(--t-accent); color: var(--t-accent); }
+        .btn.btn-primary:hover { background: var(--t-accent); color: var(--t-bg); }
+        .btn.btn-danger    { border-color: var(--t-red); color: var(--t-red); }
+        .btn.btn-danger:hover  { background: var(--t-red); color: #fff; }
+        .btn.btn-success   { border-color: var(--t-green); color: var(--t-green); }
+        .btn.btn-success:hover { background: var(--t-green); color: var(--t-bg); }
+        .btn.btn-sm        { font-size: 0.55rem; padding: 0.3rem 0.7rem; }
+
+        /* ── DATA SYNC SECTION ───────────────────────── */
+        .sync-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .sync-mode-group {
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--t-border-hi);
+        }
+
+        .sync-mode-btn {
+            background: transparent;
+            border: none;
+            border-right: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.1rem;
+            padding: 0.4rem 0.9rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .sync-mode-btn:last-child { border-right: none; }
+        .sync-mode-btn.active { background: var(--t-accent); color: var(--t-bg); }
+        .sync-mode-btn:not(.active):hover { background: var(--t-surface2); }
+
+        .source-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .source-check {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--t-border);
+            cursor: pointer;
+            transition: all 0.12s;
+            background: var(--t-surface2);
+            user-select: none;
+        }
+        .source-check:hover { border-color: var(--t-border-hi); }
+        .source-check.selected {
+            border-color: var(--t-accent);
+            background: color-mix(in srgb, var(--t-accent) 8%, var(--t-surface2));
+        }
+
+        .source-checkbox {
+            width: 14px; height: 14px;
+            border: 1px solid var(--t-border-hi);
+            border-radius: 2px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.6rem;
+            flex-shrink: 0;
+            transition: all 0.12s;
+        }
+        .source-check.selected .source-checkbox {
+            background: var(--t-accent);
+            border-color: var(--t-accent);
+            color: var(--t-bg);
+        }
+
+        .source-info { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; }
+        .source-name { font-size: 0.68rem; color: var(--t-text); }
+        .source-count { font-size: 0.55rem; color: var(--t-text-mute); }
+
+        /* ── SYNC LOG ────────────────────────────────── */
+        .sync-log {
+            background: var(--t-bg2);
+            border: 1px solid var(--t-border);
+            padding: 0.8rem;
+            font-size: 0.68rem;
+            height: 200px;
+            overflow-y: auto;
+            line-height: 1.8;
+            display: none;
+            scrollbar-width: thin;
+            scrollbar-color: var(--t-border-hi) transparent;
+        }
+        .sync-log.visible { display: block; }
+        .log-line        { color: var(--t-text-dim); }
+        .log-line.success { color: var(--t-green); }
+        .log-line.error   { color: var(--t-red); }
+        .log-line.info    { color: var(--t-accent2); }
+
+        .sync-progress {
+            height: 3px;
+            background: var(--t-border);
+            margin-top: 0.5rem;
+            display: none;
+            overflow: hidden;
+            width: 100%;
+        }
+        .sync-progress.visible { display: block; }
+        .sync-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--t-accent), var(--t-accent2));
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .sync-progress-fill.indeterminate {
+            width: 40%;
+            animation: indeterminate 1.5s infinite;
+        }
+        @keyframes indeterminate {
+            0%   { margin-left: -40%; }
+            100% { margin-left: 100%; }
+        }
+
+        /* ── LLM SECTION ─────────────────────────────── */
+        .llm-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .llm-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.7rem 0.9rem;
+            border: 1px solid var(--t-border);
+            background: var(--t-surface2);
+            transition: border-color 0.15s;
+        }
+        .llm-row.active-model {
+            border-color: var(--t-accent);
+            background: color-mix(in srgb, var(--t-accent) 6%, var(--t-surface2));
+        }
+
+        .llm-active-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--t-text-mute);
+            flex-shrink: 0;
+        }
+        .llm-row.active-model .llm-active-dot {
+            background: var(--t-green);
+            box-shadow: 0 0 6px var(--t-green);
+        }
+
+        .llm-name  { font-size: 0.75rem; color: var(--t-text); flex: 1; }
+        .llm-size  { font-size: 0.62rem; color: var(--t-text-mute); flex-shrink: 0; }
+        .llm-date  { font-size: 0.58rem; color: var(--t-text-mute); width: 80px; flex-shrink: 0; }
+        .llm-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+
+        .active-badge {
+            font-size: 0.52rem;
+            letter-spacing: 0.1rem;
+            color: var(--t-green);
+            border: 1px solid var(--t-green);
+            padding: 0.1rem 0.45rem;
+            border-radius: 2px;
+        }
+
+        /* ── LLM PULL ────────────────────────────────── */
+        .pull-row {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            margin-top: 0.8rem;
+        }
+
+        .pull-input {
+            flex: 1;
+            background: var(--t-bg2);
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.72rem;
+            padding: 0.5rem 0.8rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .pull-input:focus   { border-color: var(--t-accent); }
+        .pull-input::placeholder { color: var(--t-text-mute); }
+
+        .pull-progress-wrap {
+            margin-top: 0.5rem;
+            display: none;
+        }
+        .pull-progress-wrap.visible { display: block; }
+
+        .pull-bar {
+            height: 3px;
+            background: var(--t-border);
+        }
+        .pull-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--t-green), var(--t-accent2));
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .pull-status-text {
+            font-size: 0.6rem;
+            color: var(--t-text-mute);
+            margin-top: 0.3rem;
+        }
+
+
+
+        /* ── EMPTY STATE ─────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--t-text-mute);
+            font-size: 0.68rem;
+        }
+
+        /* ── SPINNER ─────────────────────────────────── */
+        .spinner {
+            display: inline-block;
+            width: 12px; height: 12px;
+            border: 2px solid var(--t-border);
+            border-top-color: var(--t-accent);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ─────────────────────────────────────────── -->
+<nav class="navbar">
+    <div class="navbar-left">
+        <a href="{% url 'dashboard' %}" class="navbar-logo">NET-1</a>
+        <span class="navbar-sep">/</span>
+        <span class="navbar-page">SYSTEM</span>
+    </div>
+    <div class="navbar-right">
+        <span class="nav-user">> USER: <span>{{ request.user.username|upper }}</span></span>
+        <button class="btn-settings" onclick="openThemePanel()" title="Themes">⚙</button>
+        <form method="POST" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="btn-logout" type="submit">[ LOGOUT ]</button>
+        </form>
+    </div>
+</nav>
+
+<div class="main">
+
+    <!-- ══════════════════════════════════════════════════
+         SECTION 1 — DATA SYNC
+    ══════════════════════════════════════════════════ -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-title">// DATA SYNC</span>
+            <span id="syncStatusBadge" style="font-size:0.6rem;color:var(--t-text-mute)">IDLE</span>
+        </div>
+        <div class="section-body">
+
+            <!-- mode toggle -->
+            <div class="sync-controls">
+                <span style="font-size:0.6rem;color:var(--t-text-mute);letter-spacing:0.1rem">MODE //</span>
+                <div class="sync-mode-group">
+                    <button class="sync-mode-btn active" data-mode="sample" onclick="setSyncMode('sample', this)">SAMPLE</button>
+                    <button class="sync-mode-btn" data-mode="full"   onclick="setSyncMode('full', this)">FULL</button>
+                </div>
+                <span id="modeHint" style="font-size:0.58rem;color:var(--t-text-mute)">
+                    Sample: quick test with small datasets
+                </span>
+            </div>
+
+            <!-- source selection -->
+            <div class="source-grid" id="sourceGrid">
+                {% for key, src in sync_sources.items %}
+                <div class="source-check" data-source="{{ key }}" onclick="toggleSource(this)">
+                    <div class="source-checkbox"></div>
+                    <div class="source-info">
+                        <span class="source-name">{{ src.icon }} {{ src.label }}</span>
+                        <span class="source-count" id="src-count-{{ key }}"></span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- action row -->
+            <div style="display:flex;gap:0.6rem;align-items:center;margin-bottom:0.8rem">
+                <button class="btn btn-primary" id="syncAllBtn" onclick="selectAllSources()">SELECT ALL</button>
+                <button class="btn" onclick="clearSourceSelection()">CLEAR</button>
+                <button class="btn btn-success" id="startSyncBtn" onclick="startSync()">▶ START SYNC</button>
+                <span id="syncSelectedCount" style="font-size:0.6rem;color:var(--t-text-mute)">0 sources selected</span>
+            </div>
+
+            <!-- progress bar -->
+            <div style="overflow:hidden;width:100%">
+                <div class="sync-progress" id="syncProgress">
+                    <div class="sync-progress-fill indeterminate" id="syncProgressFill"></div>
+                </div>
+            </div>
+
+            <!-- log -->
+            <div class="sync-log" id="syncLog"></div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         SECTION 2 — LLM MANAGEMENT
+    ══════════════════════════════════════════════════ -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-title">// LLM MANAGEMENT</span>
+            <button class="btn btn-sm" onclick="loadModels()">⟳ REFRESH</button>
+        </div>
+        <div class="section-body">
+
+            <!-- installed models list -->
+            <div style="font-size:0.6rem;letter-spacing:0.15rem;color:var(--t-text-mute);margin-bottom:0.6rem">
+                INSTALLED MODELS
+            </div>
+            <div class="llm-grid" id="llmGrid">
+                <div class="empty-state"><span class="spinner"></span> Loading...</div>
+            </div>
+
+            <!-- pull new model -->
+            <div style="border-top:1px solid var(--t-border);padding-top:1rem;margin-top:0.5rem">
+                <div style="font-size:0.6rem;letter-spacing:0.15rem;color:var(--t-text-mute);margin-bottom:0.6rem">
+                    DOWNLOAD NEW MODEL
+                </div>
+
+                <div class="pull-row">
+                    <input type="text" class="pull-input" id="pullModelInput"
+                           placeholder="e.g. llama3.2, mistral, phi4, gemma3:4b">
+                    <button class="btn btn-primary" id="pullBtn" onclick="pullModel()">⬇ PULL</button>
+                </div>
+
+                <div style="font-size:0.6rem;color:var(--t-text-mute);margin-top:0.5rem;line-height:1.8">
+                    Enter a model name from <span style="color:var(--t-accent2)">ollama.com/library</span>
+                    — e.g. <span style="color:var(--t-text-dim)">qwen3:14b</span> for a larger version of the current model,
+                    or <span style="color:var(--t-text-dim)">llama3.2</span> for Meta's latest.
+                </div>
+
+                <!-- pull progress -->
+                <div class="pull-progress-wrap" id="pullProgressWrap">
+                    <div class="pull-bar">
+                        <div class="pull-bar-fill" id="pullBarFill"></div>
+                    </div>
+                    <div class="pull-status-text" id="pullStatusText"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% include "interface/theme_panel.html" %}
+{{ source_data_json|json_script:"source-data" }}
+<script>
+const CSRF = '{{ csrf_token }}';
+
+const SOURCE_DATA = JSON.parse(document.getElementById("source-data").textContent);
+
+// ============================================================
+//  DATA SYNC
+// ============================================================
+let syncMode     = 'sample';
+let syncJobId    = null;
+let syncPollTimer = null;
+let selectedSources = new Set();
+
+function setSyncMode(mode, btn) {
+    syncMode = mode;
+    document.querySelectorAll('.sync-mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('modeHint').textContent = mode === 'sample'
+        ? 'Sample: quick test with small datasets'
+        : 'Full: complete download — may take hours';
+}
+
+function toggleSource(el) {
+    const src = el.dataset.source;
+    if (selectedSources.has(src)) {
+        selectedSources.delete(src);
+        el.classList.remove('selected');
+        el.querySelector('.source-checkbox').textContent = '';
+    } else {
+        selectedSources.add(src);
+        el.classList.add('selected');
+        el.querySelector('.source-checkbox').textContent = '✓';
+    }
+    updateSelectedCount();
+}
+
+function selectAllSources() {
+    document.querySelectorAll('.source-check').forEach(el => {
+        selectedSources.add(el.dataset.source);
+        el.classList.add('selected');
+        el.querySelector('.source-checkbox').textContent = '✓';
+    });
+    updateSelectedCount();
+}
+
+function clearSourceSelection() {
+    selectedSources.clear();
+    document.querySelectorAll('.source-check').forEach(el => {
+        el.classList.remove('selected');
+        el.querySelector('.source-checkbox').textContent = '';
+    });
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    const n = selectedSources.size;
+    document.getElementById('syncSelectedCount').textContent =
+        `${n} source${n !== 1 ? 's' : ''} selected`;
+}
+
+async function startSync() {
+    if (selectedSources.size === 0) {
+        alert('Please select at least one source.');
+        return;
+    }
+    if (syncJobId) {
+        alert('A sync is already running.');
+        return;
+    }
+
+    const btn = document.getElementById('startSyncBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ RUNNING...';
+
+    document.getElementById('syncStatusBadge').textContent = 'RUNNING';
+    document.getElementById('syncStatusBadge').style.color = 'var(--t-amber)';
+
+    const log    = document.getElementById('syncLog');
+    const prog   = document.getElementById('syncProgress');
+    log.innerHTML = '';
+    log.classList.add('visible');
+    prog.classList.add('visible');
+
+    appendLog(`Starting ${syncMode} sync for: ${[...selectedSources].join(', ')}`, 'info');
+
+    try {
+        const resp = await fetch('{% url "sync_start" %}', {
+            method : 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body   : JSON.stringify({ sources: [...selectedSources], mode: syncMode }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) { appendLog(`❌ ${data.error}`, 'error'); resetSync(); return; }
+
+        syncJobId = data.job_id;
+        syncPollTimer = setInterval(pollSyncStatus, 2000);
+
+    } catch(e) {
+        appendLog(`❌ Failed to start: ${e.message}`, 'error');
+        resetSync();
+    }
+}
+
+async function pollSyncStatus() {
+    if (!syncJobId) return;
+    try {
+        const resp = await fetch(`{% url 'sync_status' '00000000' %}`.replace('00000000', syncJobId));
+        const data = await resp.json();
+
+        // add new log lines
+        data.log.forEach((line, i) => {
+            const lineId = `log-${i}`;
+            if (!document.getElementById(lineId)) {
+                appendLog(line, getLineClass(line), lineId);
+            }
+        });
+
+        if (data.status === 'done' || data.status === 'error') {
+            clearInterval(syncPollTimer);
+            syncPollTimer = null;
+            syncJobId     = null;
+
+            document.getElementById('syncStatusBadge').textContent =
+                data.status === 'done' ? 'DONE' : 'ERROR';
+            document.getElementById('syncStatusBadge').style.color =
+                data.status === 'done' ? 'var(--t-green)' : 'var(--t-red)';
+
+            document.getElementById('syncProgress').classList.remove('visible');
+            resetSync();
+        }
+
+    } catch(e) { /* ignore transient errors */ }
+}
+
+function getLineClass(line) {
+    if (line.includes('✅') || line.includes('complete') || line.includes('done')) return 'success';
+    if (line.includes('❌') || line.includes('error') || line.includes('Error'))   return 'error';
+    if (line.includes('Starting') || line.includes('//'))                           return 'info';
+    return '';
+}
+
+function appendLog(msg, cls='', id='') {
+    const log  = document.getElementById('syncLog');
+    const line = document.createElement('div');
+    line.className   = `log-line ${cls}`.trim();
+    line.textContent = `> ${msg}`;
+    if (id) line.id  = id;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+}
+
+function resetSync() {
+    const btn = document.getElementById('startSyncBtn');
+    btn.disabled    = false;
+    btn.textContent = '▶ START SYNC';
+}
+
+// ============================================================
+//  LLM MANAGEMENT
+// ============================================================
+let activeModel   = '{{ active_model }}';
+let pullingModel  = null;
+let pullPollTimer = null;
+
+async function loadModels() {
+    const grid = document.getElementById('llmGrid');
+    grid.innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading...</div>';
+
+    try {
+        const resp = await fetch('{% url "llm_list" %}');
+        const data = await resp.json();
+
+        if (data.error) {
+            grid.innerHTML = `<div class="empty-state" style="color:var(--t-red)">❌ ${data.error}</div>`;
+            return;
+        }
+
+        if (!data.models || data.models.length === 0) {
+            grid.innerHTML = '<div class="empty-state">No models installed. Pull one below.</div>';
+            return;
+        }
+
+        activeModel    = data.active;
+        grid.innerHTML = '';
+
+        data.models.forEach(m => {
+            const row = document.createElement('div');
+            row.className = 'llm-row' + (m.is_active ? ' active-model' : '');
+            row.id        = `llm-row-${m.name.replace(/[:.]/g, '-')}`;
+
+            row.innerHTML = `
+                <div class="llm-active-dot"></div>
+                <span class="llm-name">${escHtml(m.name)}</span>
+                <span class="llm-size">${m.size_gb} GB</span>
+                <span class="llm-date">${m.modified}</span>
+                <div class="llm-actions">
+                    ${m.is_active
+                        ? `<span class="active-badge">● ACTIVE</span>`
+                        : `<button class="btn btn-sm btn-success" onclick="setActiveModel('${escHtml(m.name)}')">USE</button>`
+                    }
+                    <button class="btn btn-sm btn-danger"
+                            ${m.is_active ? 'disabled title="Cannot delete active model"' : ''}
+                            onclick="deleteModel('${escHtml(m.name)}')">DELETE</button>
+                </div>
+            `;
+            grid.appendChild(row);
+        });
+
+    } catch(e) {
+        grid.innerHTML = `<div class="empty-state" style="color:var(--t-red)">❌ ${e.message}</div>`;
+    }
+}
+
+async function setActiveModel(name) {
+    const resp = await fetch('{% url "llm_set_active" %}', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+        body   : JSON.stringify({ model: name }),
+    });
+    const data = await resp.json();
+    if (data.ok) {
+        activeModel = name;
+        loadModels();
+    } else {
+        alert(data.error);
+    }
+}
+
+async function deleteModel(name) {
+    if (!confirm(`Delete model "${name}"? This cannot be undone.`)) return;
+
+    const resp = await fetch('{% url "llm_delete" %}', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+        body   : JSON.stringify({ model: name }),
+    });
+    const data = await resp.json();
+    if (data.ok) {
+        loadModels();
+    } else {
+        alert(data.error);
+    }
+}
+
+async function pullModel() {
+    const input = document.getElementById('pullModelInput');
+    const model = input.value.trim();
+    if (!model) { input.focus(); return; }
+    if (pullingModel) { alert('A download is already in progress.'); return; }
+
+    pullingModel = model;
+
+    const btn  = document.getElementById('pullBtn');
+    btn.disabled    = true;
+    btn.textContent = '⏳ PULLING...';
+
+    const wrap = document.getElementById('pullProgressWrap');
+    const fill = document.getElementById('pullBarFill');
+    const text = document.getElementById('pullStatusText');
+    wrap.classList.add('visible');
+    fill.style.width   = '0%';
+    text.textContent   = `Starting download of ${model}...`;
+
+    try {
+        const resp = await fetch('{% url "llm_pull" %}', {
+            method : 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body   : JSON.stringify({ model }),
+        });
+        const data = await resp.json();
+        if (!data.ok) { text.textContent = `❌ ${data.error}`; resetPull(); return; }
+
+        // poll for progress
+        pullPollTimer = setInterval(() => pollPullStatus(model), 1500);
+
+    } catch(e) {
+        text.textContent = `❌ ${e.message}`;
+        resetPull();
+    }
+}
+
+async function pollPullStatus(model) {
+    const encodedModel = encodeURIComponent(model);
+    try {
+        const resp = await fetch(`/system-logger/llm/pull-status/${encodedModel}/`);
+        const data = await resp.json();
+
+        document.getElementById('pullBarFill').style.width = data.progress + '%';
+        if (data.log && data.log.length > 0) {
+            document.getElementById('pullStatusText').textContent = data.log[data.log.length - 1];
+        }
+
+        if (data.status === 'done') {
+            clearInterval(pullPollTimer);
+            document.getElementById('pullStatusText').textContent = `✅ ${model} downloaded successfully`;
+            resetPull();
+            loadModels();
+        } else if (data.status === 'error') {
+            clearInterval(pullPollTimer);
+            document.getElementById('pullStatusText').style.color = 'var(--t-red)';
+            resetPull();
+        }
+    } catch(e) { /* ignore */ }
+}
+
+function resetPull() {
+    pullingModel = null;
+    const btn = document.getElementById('pullBtn');
+    btn.disabled    = false;
+    btn.textContent = '⬇ PULL';
+}
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    loadModels();
+
+    // populate source counts
+    Object.entries(SOURCE_DATA).forEach(([key, data]) => {
+        const el = document.getElementById(`src-count-${key}`);
+        if (el) el.textContent = `${data.count.toLocaleString()} docs · ${data.date || 'Never'}`;
+    });
+});
+</script>
+
+</body>
+</html>

@@ -1,19 +1,73 @@
 import re
+import json
 import ollama
+import django.conf
 from django.db.models import Q
 from data_master.models import Document
 
 # ============================================================
 #  CONFIG
 # ============================================================
-OLLAMA_HOST  = 'http://localhost:11434'
-OLLAMA_MODEL = 'qwen3:8b'
+OLLAMA_HOST  = getattr(django.conf.settings, 'OLLAMA_HOST',  'http://localhost:11434')
+OLLAMA_MODEL = getattr(django.conf.settings, 'OLLAMA_MODEL', 'qwen3:8b')
 
 client = ollama.Client(host=OLLAMA_HOST)
 
 # ============================================================
+#  VALKEY — conversation history
+# ============================================================
+HISTORY_TTL     = 60 * 60 * 24 * 7   # 7 days
+HISTORY_MAX     = 20                   # max turns kept in Valkey
+CONTEXT_WINDOW  = 10                   # turns sent to LLM each time
+
+try:
+    from django_valkey import get_valkey_connection
+    _vk = get_valkey_connection('default')
+    _vk.ping()
+    VALKEY_OK = True
+except Exception:
+    _vk       = None
+    VALKEY_OK  = False
+
+
+def _history_key(user_id):
+    return f'net1:chat:{user_id}'
+
+
+def get_history(user_id):
+    """Return list of {role, content} dicts for this user."""
+    if not _vk:
+        return []
+    try:
+        raw = _vk.get(_history_key(user_id))
+        return json.loads(raw) if raw else []
+    except Exception:
+        return []
+
+
+def save_history(user_id, history):
+    """Persist trimmed history to Valkey."""
+    if not _vk:
+        return
+    try:
+        trimmed = history[-HISTORY_MAX:]
+        _vk.set(_history_key(user_id), json.dumps(trimmed), ex=HISTORY_TTL)
+    except Exception:
+        pass
+
+
+def clear_history(user_id):
+    """Wipe conversation history for this user."""
+    if not _vk:
+        return
+    try:
+        _vk.delete(_history_key(user_id))
+    except Exception:
+        pass
+
+
+# ============================================================
 #  SYSTEM PROMPT
-#  Natural, conversational — articles are a bonus not a crutch
 # ============================================================
 SYSTEM_PROMPT = """You are NET-1, an intelligent offline assistant.
 
@@ -30,6 +84,8 @@ You also have access to a local knowledge library containing:
 
 When relevant library documents are provided as CONTEXT, use them to enrich
 your answer. Reference them naturally if helpful — but never force them in.
+
+You remember the conversation history and refer back to it naturally when relevant.
 
 If CONTEXT is provided, end your response with this line only when genuinely useful:
 SOURCES: slug-one, slug-two
@@ -60,7 +116,6 @@ STOP_WORDS = {
     'while', 'where', 'know', 'like', 'just', 'very', 'much',
 }
 
-# Source priority keywords
 _BOOK_KW     = {'book','novel','read','author','story','literature','fiction',
                 'written','wrote','chapter','classic','tale','poem','poetry',
                 'prose','narrative','adventure','romance','recommend'}
@@ -221,22 +276,38 @@ def resolve_slugs(slug_string):
 # ============================================================
 #  MAIN FUNCTION
 # ============================================================
-def ask(query):
+def ask(query, user_id=None):
+    """
+    Conversational pipeline with Valkey-backed history.
+    user_id: Django user pk — used to key the conversation in Valkey.
+             If None, history is not persisted (anonymous/fallback).
+    """
     try:
-        messages     = [{'role': 'system', 'content': SYSTEM_PROMPT}]
-        context_docs = []
+        # ── load history from Valkey ──
+        history  = get_history(user_id) if user_id else []
 
+        # ── search DB for relevant docs ──
+        context_docs = []
         if _should_search(query):
             context_docs = pre_search(query)
 
+        # ── build user message (with optional context) ──
         if context_docs:
             context      = build_context(context_docs)
             user_message = f"{context}\n\nUser: {query}"
         else:
             user_message = query
 
-        messages.append({'role': 'user', 'content': user_message})
+        # ── assemble messages for LLM ──
+        # system prompt → recent history → current user message
+        recent   = history[-CONTEXT_WINDOW:]
+        messages = (
+            [{'role': 'system', 'content': SYSTEM_PROMPT}]
+            + recent
+            + [{'role': 'user', 'content': user_message}]
+        )
 
+        # ── call LLM ──
         response = client.chat(
             model   = OLLAMA_MODEL,
             messages= messages,
@@ -246,10 +317,10 @@ def ask(query):
 
         raw    = response.message.content.strip()
         parsed = _parse_response(raw)
+        answer = parsed['answer']
 
+        # ── resolve sources ──
         top_docs = resolve_slugs(parsed['sources'])
-
-        # only surface a fallback article if user explicitly asked for one
         if not top_docs and context_docs and _explicitly_wants_source(query):
             top_docs = context_docs[:1]
 
@@ -264,8 +335,16 @@ def ask(query):
             for doc in top_docs
         ]
 
+        # ── persist turn to Valkey ──
+        # store clean query (not the context-injected version)
+        # store clean answer (no SOURCES line)
+        if user_id:
+            history.append({'role': 'user',      'content': query})
+            history.append({'role': 'assistant', 'content': answer})
+            save_history(user_id, history)
+
         return {
-            'answer' : parsed['answer'],
+            'answer' : answer,
             'sources': sources,
             'found'  : len(sources) > 0,
         }
@@ -292,11 +371,11 @@ def _explicitly_wants_source(query):
 #  RESPONSE PARSER
 # ============================================================
 def _parse_response(raw):
-    sources       = None
     sources_match = re.search(r'\bSOURCES:\s*(.+?)(?:\n|$)', raw, re.IGNORECASE)
     if sources_match:
         sources = sources_match.group(1).strip()
         answer  = raw[:sources_match.start()].strip()
     else:
+        sources = None
         answer  = raw.strip()
     return {'answer': answer, 'sources': sources}

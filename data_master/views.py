@@ -230,12 +230,52 @@ def prompt_view(request):
         query = body.get('query', '').strip()
         if not query:
             return JsonResponse({'error': 'No query provided'}, status=400)
-        result = ask(query)
+        result = ask(query, user_id=request.user.pk)
         return JsonResponse(result)
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+# ============================================================
+#  CHAT HISTORY ENDPOINTS
+# ============================================================
+@require_GET
+@login_required(login_url='login')
+def get_chat_history(request):
+    """Return the user's conversation history for UI restore."""
+    from data_master.llm import get_history
+    raw_history = get_history(request.user.pk)
+
+    # convert LLM format {role, content} → UI format {role, text, sources, codeBlocks}
+    ui_history = []
+    for msg in raw_history:
+        if msg['role'] == 'user':
+            ui_history.append({
+                'role'      : 'user',
+                'text'      : msg['content'],
+                'sources'   : [],
+                'codeBlocks': None,
+            })
+        else:
+            ui_history.append({
+                'role'      : 'net1',
+                'text'      : msg['content'],
+                'sources'   : [],
+                'codeBlocks': None,
+            })
+
+    return JsonResponse({'history': ui_history})
+
+
+@require_POST
+@login_required(login_url='login')
+def clear_chat_history(request):
+    """Wipe the user's conversation history from Valkey."""
+    from data_master.llm import clear_history
+    clear_history(request.user.pk)
+    return JsonResponse({'ok': True})
 
 
 # ============================================================

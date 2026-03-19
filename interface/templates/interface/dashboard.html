@@ -1201,47 +1201,38 @@
         const messages     = document.getElementById('conversationMessages');
 
         // ══════════════════════════════════════════
-        //  CHAT HISTORY — sessionStorage
-        //  Persists for browser session (tab open)
-        //  Clears when tab is closed
+        //  CHAT HISTORY — Valkey (server-side)
+        //  Persists across sessions, tabs, restarts
+        //  Keyed per user, TTL 7 days
         // ══════════════════════════════════════════
-        const HISTORY_KEY = 'net1_chat_history';
-        const MAX_HISTORY = 30;
 
-        function loadHistory() {
+        async function restoreHistory() {
             try {
-                return JSON.parse(sessionStorage.getItem(HISTORY_KEY) || '[]');
-            } catch { return []; }
+                const resp = await fetch('/data-master/prompt/history/');
+                if (!resp.ok) return;
+                const data = await resp.json();
+                const history = data.history || [];
+                if (history.length === 0) return;
+
+                const emptyState = document.getElementById('emptyState');
+                if (emptyState) emptyState.remove();
+
+                history.forEach(entry => {
+                    if (entry.role === 'user') {
+                        renderUserMessage(entry.text);
+                    } else {
+                        const sources = Array.isArray(entry.sources) ? entry.sources : [];
+                        renderNet1Message(entry.text, sources, entry.codeBlocks);
+                    }
+                });
+            } catch(e) {
+                console.warn('Could not restore chat history:', e);
+            }
         }
 
-        function saveHistory(history) {
-            const trimmed = history.slice(-MAX_HISTORY);
-            sessionStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
-        }
-
-        function addToHistory(role, text, sources, codeBlocks) {
-            const history = loadHistory();
-            history.push({ role, text, sources: sources || [], codeBlocks, ts: Date.now() });
-            saveHistory(history);
-        }
-
-        function restoreHistory() {
-            const history = loadHistory();
-            if (history.length === 0) return;
-
-            const emptyState = document.getElementById('emptyState');
-            if (emptyState) emptyState.remove();
-
-            history.forEach(entry => {
-                if (entry.role === 'user') {
-                    renderUserMessage(entry.text);
-                } else {
-                    // support old history format (article_title/articleTitle string) gracefully
-                    const sources = Array.isArray(entry.sources) ? entry.sources : [];
-                    renderNet1Message(entry.text, sources, entry.codeBlocks);
-                }
-            });
-        }
+        // history is now managed server-side — these are no-ops kept for compatibility
+        function addToHistory() {}
+        function saveHistory() {}
 
         // ══════════════════════════════════════════
         //  TEXTAREA AUTO RESIZE
@@ -1271,7 +1262,6 @@
             if (emptyState) emptyState.remove();
 
             renderUserMessage(query);
-            addToHistory('user', query, [], null);
 
             promptInput.value = '';
             promptInput.style.height = 'auto';
@@ -1294,7 +1284,6 @@
                 const cleanAnswer = stripCodeBlocks(data.answer);
                 const sources     = data.sources || [];
                 renderNet1Message(cleanAnswer, sources, codeBlocks);
-                addToHistory('net1', cleanAnswer, sources, codeBlocks);
                 promptSubmit.disabled = false;
             })
             .catch(() => {
@@ -1584,7 +1573,10 @@
         //  CLEAR HISTORY
         // ══════════════════════════════════════════
         document.getElementById('clearHistory').addEventListener('click', () => {
-            sessionStorage.removeItem(HISTORY_KEY);
+            fetch('/data-master/prompt/clear/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                }).catch(() => {});
             messages.innerHTML = '<div class="conversation-empty" id="emptyState">> AWAITING INPUT_</div>';
         });
 
