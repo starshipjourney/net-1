@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <title>NET-1 // LOG</title>
+    <script src="{% static 'interface/theme.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--t-bg);
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── NAVBAR ─────────────────────────────────── */
+        .navbar {
+            width: 100%;
+            background: var(--t-bg2);
+            border-bottom: 1px solid var(--t-border-hi);
+            padding: 0 1.5rem;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 12px color-mix(in srgb, var(--t-accent) 10%, transparent);
+            flex-shrink: 0;
+        }
+
+        .navbar-left { display: flex; align-items: center; gap: 1.2rem; }
+        .navbar-logo {
+            font-size: 1rem; font-weight: bold; letter-spacing: 0.4rem;
+            color: var(--t-accent);
+            text-shadow: 0 0 10px color-mix(in srgb, var(--t-accent) 50%, transparent);
+            text-decoration: none;
+        }
+        .navbar-sep  { color: var(--t-border-hi); font-size: 0.8rem; }
+        .navbar-page { font-size: 0.65rem; letter-spacing: 0.25rem; color: var(--t-text-dim); }
+        .navbar-right { display: flex; align-items: center; gap: 1rem; }
+        .nav-user { font-size: 0.7rem; color: var(--t-text-dim); }
+        .nav-user span { color: var(--t-accent); text-shadow: 0 0 8px color-mix(in srgb, var(--t-accent) 50%, transparent); }
+        .btn-settings {
+            background: transparent; border: 1px solid var(--t-border);
+            color: var(--t-text-dim); font-family: 'Courier New', monospace;
+            font-size: 0.75rem; width: 30px; height: 30px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-settings:hover { border-color: var(--t-accent); color: var(--t-accent); }
+        .btn-logout {
+            background: transparent; border: 1px solid var(--t-accent);
+            color: var(--t-accent); font-family: 'Courier New', monospace;
+            font-size: 0.65rem; letter-spacing: 0.2rem; padding: 0.3rem 0.8rem;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-logout:hover { background: var(--t-accent); color: var(--t-bg); }
+
+        /* ── MAIN ─────────────────────────────────────── */
+        .main {
+            flex: 1;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ── SECTION CARD ────────────────────────────── */
+        .section-card {
+            background: var(--t-surface);
+            border: 1px solid var(--t-border);
+            position: relative;
+        }
+        .section-card::before {
+            content: ''; position: absolute; top: -1px; left: -1px;
+            width: 10px; height: 10px;
+            border-top: 1px solid var(--t-accent2); border-left: 1px solid var(--t-accent2);
+        }
+        .section-card::after {
+            content: ''; position: absolute; bottom: -1px; right: -1px;
+            width: 10px; height: 10px;
+            border-bottom: 1px solid var(--t-accent2); border-right: 1px solid var(--t-accent2);
+        }
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.9rem 1.2rem 0.7rem;
+            border-bottom: 1px solid var(--t-border);
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .section-title { font-size: 0.65rem; letter-spacing: 0.3rem; color: var(--t-accent2); }
+        .section-body  { padding: 1.2rem; }
+
+        /* ── TIME RANGE TOGGLE ───────────────────────── */
+        .time-range-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .time-range-btns {
+            display: flex;
+            border: 1px solid var(--t-border-hi);
+        }
+        .time-range-btn {
+            background: transparent;
+            border: none;
+            border-right: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.58rem;
+            letter-spacing: 0.1rem;
+            padding: 0.3rem 0.7rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .time-range-btn:last-child { border-right: none; }
+        .time-range-btn.active { background: var(--t-accent); color: var(--t-bg); }
+        .time-range-btn:not(.active):hover { background: var(--t-surface2); }
+
+        /* ── CUSTOM DATE RANGE ───────────────────────── */
+        .custom-range {
+            display: none;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .custom-range.visible { display: flex; }
+        .custom-range-label {
+            font-size: 0.55rem;
+            letter-spacing: 0.1rem;
+            color: var(--t-text-mute);
+        }
+        .custom-range-input {
+            background: var(--t-bg2);
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            padding: 0.25rem 0.5rem;
+            outline: none;
+            transition: border-color 0.15s;
+            /* style the native datetime-local picker to match theme */
+            color-scheme: dark;
+        }
+        .custom-range-input:focus { border-color: var(--t-accent); }
+        .btn-custom-apply {
+            background: transparent;
+            border: 1px solid var(--t-accent);
+            color: var(--t-accent);
+            font-family: 'Courier New', monospace;
+            font-size: 0.55rem;
+            letter-spacing: 0.1rem;
+            padding: 0.25rem 0.6rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-custom-apply:hover { background: var(--t-accent); color: var(--t-bg); }
+
+        /* ── CHARTS GRID ─────────────────────────────── */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+        }
+        @media (max-width: 800px) { .charts-grid { grid-template-columns: 1fr; } }
+
+        .chart-wrap {
+            background: var(--t-bg2);
+            border: 1px solid var(--t-border);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .chart-label {
+            font-size: 0.58rem;
+            letter-spacing: 0.18rem;
+            color: var(--t-text-mute);
+        }
+        .chart-current {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--t-text);
+        }
+        .chart-current span {
+            font-size: 0.65rem;
+            color: var(--t-text-mute);
+            font-weight: normal;
+        }
+        canvas { width: 100% !important; height: 120px !important; }
+
+        /* ── LIVE USERS ──────────────────────────────── */
+        .live-users-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--t-border);
+            background: var(--t-surface2);
+            font-size: 0.65rem;
+        }
+        .user-chip-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--t-green);
+            box-shadow: 0 0 6px var(--t-green);
+            flex-shrink: 0;
+        }
+        .user-chip-name { color: var(--t-text); }
+        .user-chip-badge {
+            font-size: 0.5rem;
+            color: var(--t-accent);
+            border: 1px solid var(--t-accent);
+            padding: 0.05rem 0.35rem;
+            letter-spacing: 0.05rem;
+        }
+        .live-count {
+            font-size: 0.6rem;
+            color: var(--t-text-mute);
+            letter-spacing: 0.1rem;
+        }
+
+        /* ── ACTIVITY LOG ────────────────────────────── */
+        .filter-row {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+        .filter-input {
+            background: var(--t-bg2);
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            padding: 0.4rem 0.7rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .filter-input:focus { border-color: var(--t-accent); }
+        .filter-input::placeholder { color: var(--t-text-mute); }
+
+        .filter-select {
+            background: var(--t-bg2);
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            padding: 0.4rem 0.7rem;
+            outline: none;
+            cursor: pointer;
+        }
+        .filter-select:focus { border-color: var(--t-accent); }
+
+        .btn-filter {
+            background: transparent;
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.1rem;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-filter:hover { border-color: var(--t-accent); color: var(--t-accent); }
+
+        /* ── LOG TABLE ───────────────────────────────── */
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.68rem;
+        }
+        .log-table th {
+            text-align: left;
+            padding: 0.5rem 0.7rem;
+            font-size: 0.55rem;
+            letter-spacing: 0.15rem;
+            color: var(--t-text-mute);
+            border-bottom: 1px solid var(--t-border);
+            font-weight: normal;
+            white-space: nowrap;
+        }
+        .log-table td {
+            padding: 0.5rem 0.7rem;
+            border-bottom: 1px solid var(--t-border);
+            color: var(--t-text-dim);
+            vertical-align: middle;
+        }
+        .log-table tr:last-child td { border-bottom: none; }
+        .log-table tr:hover td { background: var(--t-surface2); }
+
+        .log-table td:first-child { color: var(--t-text-mute); font-size: 0.62rem; white-space: nowrap; }
+        .log-username { color: var(--t-text); font-weight: 500; }
+        .log-path     { color: var(--t-text-dim); font-size: 0.62rem; }
+
+        .action-badge {
+            font-size: 0.5rem;
+            letter-spacing: 0.08rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 2px;
+            border: 1px solid currentColor;
+            white-space: nowrap;
+        }
+        .action-page_view  { color: var(--t-text-mute); }
+        .action-prompt     { color: var(--t-accent2); }
+        .action-search     { color: var(--t-blue); }
+        .action-download   { color: var(--t-green); }
+        .action-sync       { color: var(--t-amber); }
+        .action-llm_manage { color: var(--t-accent); }
+        .action-login      { color: var(--t-green); }
+        .action-logout     { color: var(--t-red); }
+        .action-note_create  { color: var(--t-amber); }
+        .action-note_edit    { color: var(--t-amber); }
+        .action-note_comment { color: var(--t-green); }
+
+        .log-table-wrap {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--t-border-hi) transparent;
+        }
+
+        /* ── PAGINATION ──────────────────────────────── */
+        .pagination-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 0.8rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .pagination-info { font-size: 0.6rem; color: var(--t-text-mute); }
+        .pagination-btns { display: flex; gap: 0.4rem; }
+        .btn-page {
+            background: transparent;
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.58rem;
+            padding: 0.3rem 0.7rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-page:hover    { border-color: var(--t-accent); color: var(--t-accent); }
+        .btn-page:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* ── EMPTY STATE ─────────────────────────────── */
+        .empty-state {
+            text-align: center; padding: 2rem;
+            color: var(--t-text-mute); font-size: 0.68rem;
+        }
+
+        /* ── SPINNER ─────────────────────────────────── */
+        .spinner {
+            display: inline-block; width: 12px; height: 12px;
+            border: 2px solid var(--t-border); border-top-color: var(--t-accent);
+            border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ─────────────────────────────────────────── -->
+<nav class="navbar">
+    <div class="navbar-left">
+        <a href="{% url 'dashboard' %}" class="navbar-logo">NET-1</a>
+        <span class="navbar-sep">/</span>
+        <span class="navbar-page">LOG</span>
+    </div>
+    <div class="navbar-right">
+        <span class="nav-user">> USER: <span>{{ request.user.username|upper }}</span></span>
+        <button class="btn-settings" onclick="openThemePanel()" title="Themes">⚙</button>
+        <form method="POST" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="btn-logout" type="submit">[ LOGOUT ]</button>
+        </form>
+    </div>
+</nav>
+
+<div class="main">
+
+    <!-- ══════════════════════════════════════════
+         SECTION 1 — RESOURCE CHARTS
+    ══════════════════════════════════════════ -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-title">// RESOURCE USAGE</span>
+            <div class="time-range-group">
+                <!-- preset buttons -->
+                <div class="time-range-btns">
+                    <button class="time-range-btn active" data-hours="1"   onclick="setTimeRange(1, this)">1H</button>
+                    <button class="time-range-btn"        data-hours="6"   onclick="setTimeRange(6, this)">6H</button>
+                    <button class="time-range-btn"        data-hours="24"  onclick="setTimeRange(24, this)">24H</button>
+                    <button class="time-range-btn"        data-hours="168" onclick="setTimeRange(168, this)">7D</button>
+                    <button class="time-range-btn"        data-hours="0"   onclick="toggleCustomRange(this)">CUSTOM</button>
+                </div>
+                <!-- custom date range (hidden until CUSTOM clicked) -->
+                <div class="custom-range" id="customRange">
+                    <span class="custom-range-label">FROM</span>
+                    <input type="datetime-local" class="custom-range-input" id="customStart">
+                    <span class="custom-range-label">TO</span>
+                    <input type="datetime-local" class="custom-range-input" id="customEnd">
+                    <button class="btn-custom-apply" onclick="applyCustomRange()">APPLY</button>
+                </div>
+            </div>
+        </div>
+        <div class="section-body">
+            <div class="charts-grid">
+
+                <div class="chart-wrap">
+                    <div class="chart-label">CPU USAGE</div>
+                    <div class="chart-current" id="cpuCurrent">--%</div>
+                    <canvas id="cpuChart"></canvas>
+                </div>
+
+                <div class="chart-wrap">
+                    <div class="chart-label">RAM USAGE</div>
+                    <div class="chart-current" id="ramCurrent">--%</div>
+                    <canvas id="ramChart"></canvas>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 2 — LIVE USERS
+    ══════════════════════════════════════════ -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-title">// LIVE USERS</span>
+            <span class="live-count" id="liveCount">Loading...</span>
+        </div>
+        <div class="section-body">
+            <div class="live-users-grid" id="liveUsersGrid">
+                <div class="empty-state"><span class="spinner"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 3 — ACTIVITY LOG
+    ══════════════════════════════════════════ -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-title">// ACTIVITY LOG</span>
+            <span class="live-count" id="activityTotal"></span>
+        </div>
+        <div class="section-body">
+
+            <!-- filters -->
+            <div class="filter-row">
+                <!-- USER dropdown (populated from API) -->
+                <select class="filter-select" id="filterUser">
+                    <option value="">all users</option>
+                </select>
+                <input type="date" class="filter-input" id="filterDate">
+                <select class="filter-select" id="filterAction">
+                    <option value="">all actions</option>
+                    <option value="page_view">page view</option>
+                    <option value="prompt">prompt</option>
+                    <option value="search">search</option>
+                    <option value="download">download</option>
+                    <option value="sync">sync</option>
+                    <option value="llm_manage">llm manage</option>
+                    <option value="login">login</option>
+                    <option value="logout">logout</option>
+                    <option value="note_create">note created</option>
+                    <option value="note_edit">note edited</option>
+                    <option value="note_comment">note comment</option>
+                </select>
+                <button class="btn-filter" onclick="loadActivity(1)">FILTER</button>
+                <button class="btn-filter" onclick="clearFilters()">CLEAR</button>
+            </div>
+
+            <!-- table -->
+            <div class="log-table-wrap">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>TIMESTAMP</th>
+                            <th>USER</th>
+                            <th>ACTION</th>
+                            <th>PATH</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityTableBody">
+                        <tr><td colspan="5" class="empty-state"><span class="spinner"></span> Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- pagination -->
+            <div class="pagination-row">
+                <span class="pagination-info" id="paginationInfo"></span>
+                <div class="pagination-btns">
+                    <button class="btn-page" id="prevBtn" onclick="changePage(-1)" disabled>◀ PREV</button>
+                    <button class="btn-page" id="nextBtn" onclick="changePage(1)"  disabled>NEXT ▶</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% include "interface/theme_panel.html" %}
+
+<script>
+// ============================================================
+//  CHART SETUP
+// ============================================================
+let currentHours  = 1;
+let customMode    = false;   // true when using custom date range
+let cpuChart, ramChart;
+
+const chartDefaults = {
+    type: 'line',
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 300 },
+        plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+        scales: {
+            x: {
+                ticks: {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--t-text-mute').trim(),
+                    maxTicksLimit: 8,
+                    font: { family: 'Courier New', size: 10 },
+                },
+                grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--t-border').trim() }
+            },
+            y: {
+                min: 0, max: 100,
+                ticks: {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--t-text-mute').trim(),
+                    font: { family: 'Courier New', size: 10 },
+                    callback: v => v + '%',
+                },
+                grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--t-border').trim() }
+            }
+        }
+    }
+};
+
+function initCharts() {
+    const accent  = getComputedStyle(document.documentElement).getPropertyValue('--t-accent').trim();
+    const accent2 = getComputedStyle(document.documentElement).getPropertyValue('--t-accent2').trim();
+
+    cpuChart = new Chart(document.getElementById('cpuChart'), {
+        ...chartDefaults,
+        data: {
+            labels  : [],
+            datasets: [{
+                data           : [],
+                borderColor    : accent,
+                backgroundColor: accent + '22',
+                borderWidth    : 1.5,
+                fill           : true,
+                tension        : 0.3,
+                pointRadius    : 0,
+            }]
+        }
+    });
+
+    ramChart = new Chart(document.getElementById('ramChart'), {
+        ...chartDefaults,
+        data: {
+            labels  : [],
+            datasets: [{
+                data           : [],
+                borderColor    : accent2,
+                backgroundColor: accent2 + '22',
+                borderWidth    : 1.5,
+                fill           : true,
+                tension        : 0.3,
+                pointRadius    : 0,
+            }]
+        }
+    });
+}
+
+// ── preset range buttons ────────────────────────────────────
+function setTimeRange(hours, btn) {
+    customMode    = false;
+    currentHours  = hours;
+    document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('customRange').classList.remove('visible');
+    loadMetrics();
+}
+
+// ── CUSTOM button toggle ────────────────────────────────────
+function toggleCustomRange(btn) {
+    const panel = document.getElementById('customRange');
+    const isOpen = panel.classList.contains('visible');
+
+    document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active'));
+
+    if (isOpen) {
+        // clicking CUSTOM again collapses and reverts to 1H
+        panel.classList.remove('visible');
+        customMode = false;
+        const firstBtn = document.querySelector('.time-range-btn[data-hours="1"]');
+        firstBtn.classList.add('active');
+        currentHours = 1;
+        loadMetrics();
+    } else {
+        panel.classList.add('visible');
+        btn.classList.add('active');
+        // pre-fill sensible defaults: last 24 h
+        const now   = new Date();
+        const minus = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        document.getElementById('customEnd').value   = toLocalISO(now);
+        document.getElementById('customStart').value = toLocalISO(minus);
+    }
+}
+
+// ── apply custom range ──────────────────────────────────────
+function applyCustomRange() {
+    const start = document.getElementById('customStart').value;
+    const end   = document.getElementById('customEnd').value;
+    if (!start || !end) { alert('Please select both start and end dates.'); return; }
+    if (start >= end)   { alert('Start must be before end.');               return; }
+    customMode = true;
+    loadMetrics();
+}
+
+// ── helper: format Date → "YYYY-MM-DDTHH:MM" for datetime-local ─
+function toLocalISO(d) {
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// ── fetch metrics ───────────────────────────────────────────
+async function loadMetrics() {
+    try {
+        let url;
+        if (customMode) {
+            const start = document.getElementById('customStart').value;
+            const end   = document.getElementById('customEnd').value;
+            url = `{% url 'log_metrics' %}?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+        } else {
+            url = `{% url 'log_metrics' %}?hours=${currentHours}`;
+        }
+
+        const resp = await fetch(url);
+        const data = await resp.json();
+
+        cpuChart.data.labels            = data.labels;
+        cpuChart.data.datasets[0].data  = data.cpu;
+        ramChart.data.labels            = data.labels;
+        ramChart.data.datasets[0].data  = data.ram;
+        cpuChart.update();
+        ramChart.update();
+
+        if (data.cpu.length > 0) {
+            const lastCpu      = data.cpu[data.cpu.length - 1];
+            const lastRam      = data.ram[data.ram.length - 1];
+            const lastRamGb    = data.ram_used_gb[data.ram_used_gb.length - 1];
+            const lastRamTotal = data.ram_total_gb[data.ram_total_gb.length - 1] || '';
+            document.getElementById('cpuCurrent').innerHTML = `${lastCpu}% <span>CPU</span>`;
+            document.getElementById('ramCurrent').innerHTML = `${lastRam}% <span>${lastRamGb} / ${lastRamTotal} GB</span>`;
+        } else {
+            document.getElementById('cpuCurrent').innerHTML = '-- <span>no data yet — collecting every 60s</span>';
+            document.getElementById('ramCurrent').innerHTML = '-- <span>no data yet — collecting every 60s</span>';
+        }
+
+    } catch(e) {
+        console.warn('Failed to load metrics:', e);
+    }
+}
+
+// ============================================================
+//  LIVE USERS
+// ============================================================
+async function loadLiveUsers() {
+    try {
+        const resp = await fetch('{% url "log_live_users" %}');
+        const data = await resp.json();
+        const grid = document.getElementById('liveUsersGrid');
+
+        document.getElementById('liveCount').textContent =
+            `${data.count} user${data.count !== 1 ? 's' : ''} online`;
+
+        if (data.users.length === 0) {
+            grid.innerHTML = '<div class="empty-state" style="padding:1rem">No active sessions</div>';
+            return;
+        }
+
+        grid.innerHTML = data.users.map(u => `
+            <div class="user-chip">
+                <div class="user-chip-dot"></div>
+                <span class="user-chip-name">${escHtml(u.username)}</span>
+                ${u.is_staff ? '<span class="user-chip-badge">ADMIN</span>' : ''}
+            </div>
+        `).join('');
+
+    } catch(e) { console.warn('Failed to load live users:', e); }
+}
+
+// ============================================================
+//  USER DROPDOWN — populate from API
+// ============================================================
+async function loadUserOptions() {
+    try {
+        const resp = await fetch('{% url "log_users" %}');
+        const data = await resp.json();
+        const sel  = document.getElementById('filterUser');
+
+        // keep the "all users" option, append the rest
+        data.users.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value       = u;
+            opt.textContent = u;
+            sel.appendChild(opt);
+        });
+    } catch(e) {
+        console.warn('Failed to load user list:', e);
+    }
+}
+
+// ============================================================
+//  ACTIVITY LOG
+// ============================================================
+let activityPage  = 1;
+let activityTotal = 0;
+const PER_PAGE    = 50;
+
+async function loadActivity(page = 1) {
+    activityPage = page;
+    const tbody  = document.getElementById('activityTableBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><span class="spinner"></span></td></tr>';
+
+    const user   = document.getElementById('filterUser').value;
+    const date   = document.getElementById('filterDate').value;
+    const action = document.getElementById('filterAction').value;
+
+    const params = new URLSearchParams({ page, per_page: PER_PAGE });
+    if (user)   params.set('user',   user);
+    if (date)   params.set('date',   date);
+    if (action) params.set('action', action);
+
+    try {
+        const resp = await fetch(`{% url 'log_activity' %}?${params}`);
+        const data = await resp.json();
+
+        activityTotal = data.total;
+        document.getElementById('activityTotal').textContent =
+            `${data.total.toLocaleString()} records`;
+
+        const totalPages = Math.ceil(data.total / PER_PAGE);
+        document.getElementById('paginationInfo').textContent =
+            `Page ${page} of ${totalPages} · ${data.total.toLocaleString()} records`;
+        document.getElementById('prevBtn').disabled = page <= 1;
+        document.getElementById('nextBtn').disabled = page >= totalPages;
+
+        if (data.logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No records found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.logs.map(log => `
+            <tr>
+                <td>${escHtml(log.timestamp)}</td>
+                <td class="log-username">${escHtml(log.username)}</td>
+                <td><span class="action-badge action-${log.action}">${log.action.replace('_',' ')}</span></td>
+                <td class="log-path">${escHtml(log.path)}</td>
+                <td>${escHtml(log.ip_address || '-')}</td>
+            </tr>
+        `).join('');
+
+    } catch(e) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state" style="color:var(--t-red)">❌ ${e.message}</td></tr>`;
+    }
+}
+
+function changePage(dir) {
+    const totalPages = Math.ceil(activityTotal / PER_PAGE);
+    const newPage = activityPage + dir;
+    if (newPage >= 1 && newPage <= totalPages) loadActivity(newPage);
+}
+
+function clearFilters() {
+    document.getElementById('filterUser').value   = '';
+    document.getElementById('filterDate').value   = '';
+    document.getElementById('filterAction').value = '';
+    loadActivity(1);
+}
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    initCharts();
+    loadMetrics();
+    loadLiveUsers();
+    loadUserOptions();   // populate user dropdown
+    loadActivity(1);
+
+    // auto-refresh every 60 seconds
+    setInterval(loadMetrics,   60000);
+    setInterval(loadLiveUsers, 30000);
+});
+</script>
+
+</body>
+</html>

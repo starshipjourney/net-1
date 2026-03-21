@@ -987,7 +987,7 @@
     <nav class="navbar">
         <span class="navbar-logo">NET-1</span>
         <div class="navbar-right">
-            <div class="user-info">> USER: <span>NET1ADMIN</span></div>
+            <div class="user-info">> USER: <span>{{ request.user.username|upper }}</span></div>
             <button class="btn-settings" title="Settings" onclick="openThemePanel()">⚙</button>
             <form method="POST" action="{% url 'logout' %}">
                 {% csrf_token %}
@@ -1019,10 +1019,10 @@
                             <div class="c-card-desc">Create & share notes with the network</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
-                        <div class="c-card" data-index="2">
+                        <div class="c-card" data-index="2" data-url="/system-logger/log/">
                             <div class="c-card-tag">03</div>
-                            <div class="c-card-title">SEARCH</div>
-                            <div class="c-card-desc">Advanced search & filters</div>
+                            <div class="c-card-title">LOG</div>
+                            <div class="c-card-desc">System metrics, users & activity</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
                         <div class="c-card" data-index="3" data-url="/system-logger/">

@@ -460,3 +460,165 @@ def llm_pull_status(request, model):
         'progress': job['progress'],
         'log'     : job['log'][-5:],  # last 5 lines
     })
+
+
+# ============================================================
+#  LOG PAGE VIEWS
+# ============================================================
+@login_required(login_url='login')
+def log_view(request):
+    """Main log page — admin only."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return render(request, 'system_logger/access_denied.html', status=403)
+    return render(request, 'system_logger/log.html')
+
+
+@require_GET
+@login_required(login_url='login')
+def metrics_data(request):
+    """Return time-series CPU/RAM data for charts."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'error': 'Admin only'}, status=403)
+
+    from system_logger.models import SystemSnapshot
+    from django.utils import timezone
+    from datetime import timedelta, datetime
+
+    start_str = request.GET.get('start', '').strip()
+    end_str   = request.GET.get('end', '').strip()
+
+    if start_str and end_str:
+        # Custom range: expect ISO datetime strings e.g. "2025-01-01T00:00"
+        try:
+            start_dt = datetime.fromisoformat(start_str)
+            end_dt   = datetime.fromisoformat(end_str)
+            # Make timezone-aware if USE_TZ is on
+            if timezone.is_naive(start_dt):
+                start_dt = timezone.make_aware(start_dt)
+            if timezone.is_naive(end_dt):
+                end_dt = timezone.make_aware(end_dt)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid date format'}, status=400)
+    else:
+        hours    = int(request.GET.get('hours', 24))
+        end_dt   = timezone.now()
+        start_dt = end_dt - timedelta(hours=hours)
+
+    metrics = SystemSnapshot.objects.filter(
+        timestamp__gte=start_dt,
+        timestamp__lte=end_dt,
+    ).order_by('timestamp').values(
+        'timestamp', 'cpu_percent', 'ram_percent',
+        'ram_used_gb', 'ram_total_gb', 'disk_percent', 'disk_used_gb'
+    )
+
+    return JsonResponse({
+        'labels'      : [m['timestamp'].strftime('%Y-%m-%d %H:%M') for m in metrics],
+        'cpu'         : [m['cpu_percent'] for m in metrics],
+        'ram'         : [m['ram_percent'] for m in metrics],
+        'ram_used_gb' : [m['ram_used_gb'] for m in metrics],
+        'ram_total_gb': [m['ram_total_gb'] for m in metrics],
+        'disk'        : [m['disk_percent'] for m in metrics],
+        'disk_used_gb': [m['disk_used_gb'] for m in metrics],
+    })
+
+
+@require_GET
+@login_required(login_url='login')
+def activity_data(request):
+    """Return paginated activity log with filters."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'error': 'Admin only'}, status=403)
+
+    from system_logger.models import ActivityLog
+    from django.utils import timezone
+    from datetime import timedelta, datetime
+
+    page     = int(request.GET.get('page', 1))
+    per_page = 50
+    username = request.GET.get('user', '').strip()
+    action   = request.GET.get('action', '').strip()
+    date_str = request.GET.get('date', '').strip()
+
+    qs = ActivityLog.objects.all()
+
+    if username:
+        qs = qs.filter(username__icontains=username)
+    if action:
+        qs = qs.filter(action=action)
+    if date_str:
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            qs   = qs.filter(timestamp__date=date)
+        except ValueError:
+            pass
+
+    total  = qs.count()
+    offset = (page - 1) * per_page
+    logs   = qs.values(
+        'timestamp', 'username', 'action', 'path', 'detail', 'ip_address'
+    )[offset: offset + per_page]
+
+    return JsonResponse({
+        'total': total,
+        'logs' : [
+            {
+                **dict(l),
+                'timestamp': l['timestamp'].strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            for l in logs
+        ],
+    })
+
+
+@require_GET
+@login_required(login_url='login')
+def users_list(request):
+    """Return distinct usernames from ActivityLog for the filter dropdown."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'error': 'Admin only'}, status=403)
+
+    from system_logger.models import ActivityLog
+
+    usernames = (
+        ActivityLog.objects
+        .values_list('username', flat=True)
+        .distinct()
+        .order_by('username')
+    )
+
+    return JsonResponse({'users': list(usernames)})
+
+
+@require_GET
+@login_required(login_url='login')
+def live_users(request):
+    """Return currently active sessions."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'error': 'Admin only'}, status=403)
+
+    from django.contrib.sessions.models import Session
+    from django.contrib.auth.models import User
+    from django.utils import timezone
+
+    active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+
+    users = []
+    seen  = set()
+    for session in active_sessions:
+        try:
+            data    = session.get_decoded()
+            user_id = data.get('_auth_user_id')
+            if user_id and user_id not in seen:
+                seen.add(user_id)
+                user = User.objects.filter(pk=user_id).first()
+                if user:
+                    users.append({
+                        'username' : user.username,
+                        'is_staff' : user.is_staff or user.is_superuser,
+                        'last_login': user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else '-',
+                    })
+        except Exception:
+            continue
+
+    return JsonResponse({'users': users, 'count': len(users)})
