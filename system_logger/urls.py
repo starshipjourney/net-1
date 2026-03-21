@@ -10,6 +10,12 @@ urlpatterns = [
     path('sync/start/',               views.sync_start,     name='sync_start'),
     path('sync/status/<str:job_id>/', views.sync_status,    name='sync_status'),
 
+    # ── User management ─────────────────────────────────────────
+    path('users/',         views.user_list,   name='user_list'),
+    path('users/create/',  views.user_create, name='user_create'),
+    path('users/update/',  views.user_update, name='user_update'),
+    path('users/delete/',  views.user_delete, name='user_delete'),
+
     # ── LLM management ────────────────────────────────────
     path('llm/list/',                    views.llm_list,        name='llm_list'),
     path('llm/set-active/',              views.llm_set_active,  name='llm_set_active'),

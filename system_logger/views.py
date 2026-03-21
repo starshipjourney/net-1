@@ -97,7 +97,6 @@ def system_view(request):
     if not (request.user.is_staff or request.user.is_superuser):
         return render(request, 'system_logger/access_denied.html', status=403)
 
-    # document counts per source
     from data_master.models import Document, Source
     source_counts = {}
     source_dates  = {}
@@ -110,7 +109,6 @@ def system_view(request):
         ).order_by('-loaded_at').first()
         source_dates[key] = last.loaded_at.strftime('%Y-%m-%d %H:%M') if last else 'Never'
 
-    import json
     source_data = {}
     for key in SYNC_SOURCES:
         source_data[key] = {
@@ -130,10 +128,145 @@ def system_view(request):
 
 
 # ============================================================
+#  USER MANAGEMENT
+# ============================================================
+@require_GET
+@login_required(login_url='login')
+def user_list(request):
+    """Return all users for the management table."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'error': 'Admin only'}, status=403)
+
+    from django.contrib.auth.models import User
+
+    users = User.objects.all().order_by('username').values(
+        'id', 'username', 'email', 'is_active', 'is_staff',
+        'is_superuser', 'date_joined', 'last_login'
+    )
+
+    return JsonResponse({
+        'users': [
+            {
+                'id'          : u['id'],
+                'username'    : u['username'],
+                'email'       : u['email'] or '',
+                'is_active'   : u['is_active'],
+                'is_staff'    : u['is_staff'],
+                'is_superuser': u['is_superuser'],
+                'date_joined' : u['date_joined'].strftime('%Y-%m-%d') if u['date_joined'] else '—',
+                'last_login'  : u['last_login'].strftime('%Y-%m-%d %H:%M') if u['last_login'] else 'Never',
+            }
+            for u in users
+        ]
+    })
+
+
+@require_POST
+@login_required(login_url='login')
+def user_create(request):
+    """Create a new user."""
+    if not request.user.is_superuser:
+        return JsonResponse({'error': 'Superuser access required'}, status=403)
+
+    from django.contrib.auth.models import User
+
+    try:
+        data     = json.loads(request.body)
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        email    = data.get('email', '').strip()
+        role     = data.get('role', 'user')   # 'user' | 'staff' | 'superuser'
+
+        if not username:
+            return JsonResponse({'error': 'Username is required'}, status=400)
+        if not password:
+            return JsonResponse({'error': 'Password is required'}, status=400)
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'error': f'Username "{username}" already exists'}, status=400)
+
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            email=email,
+        )
+
+        if role == 'staff':
+            user.is_staff = True
+        elif role == 'superuser':
+            user.is_staff     = True
+            user.is_superuser = True
+
+        user.save()
+        return JsonResponse({'ok': True, 'user_id': user.id})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_POST
+@login_required(login_url='login')
+def user_update(request):
+    """Toggle is_active or is_staff on a user."""
+    if not request.user.is_superuser:
+        return JsonResponse({'error': 'Superuser access required'}, status=403)
+
+    from django.contrib.auth.models import User
+
+    try:
+        data    = json.loads(request.body)
+        user_id = data.get('user_id')
+        field   = data.get('field')
+        value   = data.get('value')
+
+        if field not in ('is_active', 'is_staff'):
+            return JsonResponse({'error': 'Invalid field'}, status=400)
+
+        user = User.objects.filter(pk=user_id).first()
+        if not user:
+            return JsonResponse({'error': 'User not found'}, status=404)
+
+        if user == request.user and field == 'is_active' and value is False:
+            return JsonResponse({'error': 'Cannot deactivate your own account'}, status=400)
+
+        setattr(user, field, value)
+        user.save()
+        return JsonResponse({'ok': True})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_POST
+@login_required(login_url='login')
+def user_delete(request):
+    """Delete a user. Cannot delete yourself."""
+    if not request.user.is_superuser:
+        return JsonResponse({'error': 'Superuser access required'}, status=403)
+
+    from django.contrib.auth.models import User
+
+    try:
+        data    = json.loads(request.body)
+        user_id = data.get('user_id')
+
+        user = User.objects.filter(pk=user_id).first()
+        if not user:
+            return JsonResponse({'error': 'User not found'}, status=404)
+
+        if user == request.user:
+            return JsonResponse({'error': 'Cannot delete your own account'}, status=400)
+
+        user.delete()
+        return JsonResponse({'ok': True})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+# ============================================================
 #  DATA SYNC
 # ============================================================
-# in-memory sync job tracker
-_sync_jobs = {}   # job_id → {'status', 'log', 'source', 'phase'}
+_sync_jobs = {}
 _sync_lock = threading.Lock()
 
 
@@ -147,12 +280,11 @@ def sync_start(request):
     try:
         data    = json.loads(request.body)
         sources = data.get('sources', [])
-        mode    = data.get('mode', 'sample')   # 'sample' | 'full'
+        mode    = data.get('mode', 'sample')
 
         if not sources:
             return JsonResponse({'error': 'No sources selected'}, status=400)
 
-        # validate sources
         invalid = [s for s in sources if s not in SYNC_SOURCES]
         if invalid:
             return JsonResponse({'error': f'Unknown sources: {invalid}'}, status=400)
@@ -169,7 +301,6 @@ def sync_start(request):
                 'started': time.time(),
             }
 
-        # run in background thread
         thread = threading.Thread(
             target=_run_sync,
             args=(job_id, sources, mode, str(MAIN_DIR)),
@@ -195,12 +326,10 @@ def _run_sync(job_id, sources, mode, main_dir):
         python = sys.executable
 
         for source in sources:
-            meta = SYNC_SOURCES[source]
+            meta     = SYNC_SOURCES[source]
             dump_key = meta['dump_key']
 
             log(f'[{source}] Starting {"sample" if mode == "sample" else "full"} sync...')
-
-            # ── Phase 1: Download ──
             log(f'[{source}] Downloading data...')
             with _sync_lock:
                 _sync_jobs[job_id]['phase'] = f'{source}:download'
@@ -211,13 +340,9 @@ def _run_sync(job_id, sources, mode, main_dir):
 
             try:
                 result = subprocess.run(
-                    dl_args,
-                    cwd=main_dir,
-                    capture_output=True,
-                    text=True,
-                    timeout=3600,
+                    dl_args, cwd=main_dir, capture_output=True, text=True, timeout=3600,
                 )
-                for line in result.stdout.splitlines()[-20:]:  # last 20 lines
+                for line in result.stdout.splitlines()[-20:]:
                     if line.strip():
                         log(f'[{source}] {line}')
                 if result.returncode != 0:
@@ -226,19 +351,13 @@ def _run_sync(job_id, sources, mode, main_dir):
                 log(f'[{source}] ❌ Download timed out')
                 continue
 
-            # ── Phase 2: Parse ──
             log(f'[{source}] Parsing into database...')
             with _sync_lock:
                 _sync_jobs[job_id]['phase'] = f'{source}:parse'
 
-            parser = meta['parser']
             try:
                 result = subprocess.run(
-                    [python, parser],
-                    cwd=main_dir,
-                    capture_output=True,
-                    text=True,
-                    timeout=7200,
+                    [python, meta['parser']], cwd=main_dir, capture_output=True, text=True, timeout=7200,
                 )
                 for line in result.stdout.splitlines()[-20:]:
                     if line.strip():
@@ -329,8 +448,6 @@ def llm_set_active(request):
             return JsonResponse({'error': 'Model name required'}, status=400)
 
         OLLAMA_MODEL = model
-
-        # also update the llm module so prompt screen uses new model immediately
         _llm_module.OLLAMA_MODEL = model
         _llm_module.client       = _llm_module.ollama.Client(host=_llm_module.OLLAMA_HOST)
 
@@ -363,7 +480,7 @@ def llm_delete(request):
 
 # ── Pull (download) with streaming progress ──
 
-_pull_jobs = {}   # model_name → {'status', 'progress', 'log'}
+_pull_jobs = {}
 _pull_lock = threading.Lock()
 
 
@@ -382,11 +499,7 @@ def llm_pull(request):
         with _pull_lock:
             _pull_jobs[model] = {'status': 'pulling', 'progress': 0, 'log': []}
 
-        thread = threading.Thread(
-            target=_run_pull,
-            args=(model,),
-            daemon=True,
-        )
+        thread = threading.Thread(target=_run_pull, args=(model,), daemon=True)
         thread.start()
 
         return JsonResponse({'ok': True, 'model': model})
@@ -411,7 +524,7 @@ def _run_pull(model):
             if not line:
                 continue
             try:
-                data = json.loads(line)
+                data   = json.loads(line)
                 status = data.get('status', '')
 
                 if 'total' in data and 'completed' in data:
@@ -433,7 +546,7 @@ def _run_pull(model):
                 continue
 
         with _pull_lock:
-            _pull_jobs[model]['status'] = 'done'
+            _pull_jobs[model]['status']   = 'done'
             _pull_jobs[model]['progress'] = 100
 
     except Exception as e:
@@ -458,7 +571,7 @@ def llm_pull_status(request, model):
     return JsonResponse({
         'status'  : job['status'],
         'progress': job['progress'],
-        'log'     : job['log'][-5:],  # last 5 lines
+        'log'     : job['log'][-5:],
     })
 
 
@@ -488,11 +601,9 @@ def metrics_data(request):
     end_str   = request.GET.get('end', '').strip()
 
     if start_str and end_str:
-        # Custom range: expect ISO datetime strings e.g. "2025-01-01T00:00"
         try:
             start_dt = datetime.fromisoformat(start_str)
             end_dt   = datetime.fromisoformat(end_str)
-            # Make timezone-aware if USE_TZ is on
             if timezone.is_naive(start_dt):
                 start_dt = timezone.make_aware(start_dt)
             if timezone.is_naive(end_dt):
@@ -609,15 +720,21 @@ def live_users(request):
         try:
             data    = session.get_decoded()
             user_id = data.get('_auth_user_id')
-            if user_id and user_id not in seen:
-                seen.add(user_id)
-                user = User.objects.filter(pk=user_id).first()
-                if user:
-                    users.append({
-                        'username' : user.username,
-                        'is_staff' : user.is_staff or user.is_superuser,
-                        'last_login': user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else '-',
-                    })
+
+            # Empty session data = logged out (Django flushes but may not delete row)
+            if not user_id:
+                continue
+            if user_id in seen:
+                continue
+            seen.add(user_id)
+
+            user = User.objects.filter(pk=user_id).first()
+            if user:
+                users.append({
+                    'username'  : user.username,
+                    'is_staff'  : user.is_staff or user.is_superuser,
+                    'last_login': user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else '-',
+                })
         except Exception:
             continue
 

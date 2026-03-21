@@ -155,7 +155,135 @@
         .btn.btn-danger:hover  { background: var(--t-red); color: #fff; }
         .btn.btn-success   { border-color: var(--t-green); color: var(--t-green); }
         .btn.btn-success:hover { background: var(--t-green); color: var(--t-bg); }
+        .btn.btn-amber     { border-color: var(--t-amber); color: var(--t-amber); }
+        .btn.btn-amber:hover   { background: var(--t-amber); color: var(--t-bg); }
         .btn.btn-sm        { font-size: 0.55rem; padding: 0.3rem 0.7rem; }
+
+        /* ── USER MANAGEMENT ─────────────────────────── */
+        .user-table-wrap {
+            overflow-x: auto;
+            margin-bottom: 1.2rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--t-border-hi) transparent;
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.68rem;
+        }
+        .user-table th {
+            text-align: left;
+            padding: 0.5rem 0.8rem;
+            font-size: 0.55rem;
+            letter-spacing: 0.15rem;
+            color: var(--t-text-mute);
+            border-bottom: 1px solid var(--t-border);
+            font-weight: normal;
+            white-space: nowrap;
+        }
+        .user-table td {
+            padding: 0.55rem 0.8rem;
+            border-bottom: 1px solid var(--t-border);
+            color: var(--t-text-dim);
+            vertical-align: middle;
+        }
+        .user-table tr:last-child td { border-bottom: none; }
+        .user-table tr:hover td { background: var(--t-surface2); }
+
+        .user-name { color: var(--t-text); font-weight: 500; }
+        .user-you  {
+            font-size: 0.5rem;
+            color: var(--t-accent);
+            border: 1px solid var(--t-accent);
+            padding: 0.05rem 0.35rem;
+            letter-spacing: 0.05rem;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .status-badge {
+            font-size: 0.5rem;
+            letter-spacing: 0.08rem;
+            padding: 0.1rem 0.45rem;
+            border: 1px solid currentColor;
+            border-radius: 2px;
+            white-space: nowrap;
+        }
+        .badge-active   { color: var(--t-green); }
+        .badge-inactive { color: var(--t-text-mute); }
+        .badge-staff    { color: var(--t-amber); }
+        .badge-super    { color: var(--t-accent); }
+
+        .user-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+        /* ── CREATE USER FORM ────────────────────────── */
+        .create-user-panel {
+            display: none;
+            border-top: 1px solid var(--t-border);
+            padding-top: 1.2rem;
+            margin-top: 0.4rem;
+        }
+        .create-user-panel.visible { display: block; }
+
+        .create-form-label {
+            font-size: 0.55rem;
+            letter-spacing: 0.15rem;
+            color: var(--t-text-mute);
+            margin-bottom: 0.7rem;
+        }
+
+        .create-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto auto;
+            gap: 0.6rem;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 900px) {
+            .create-form-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .form-field { display: flex; flex-direction: column; gap: 0.3rem; }
+        .form-field-label {
+            font-size: 0.52rem;
+            letter-spacing: 0.1rem;
+            color: var(--t-text-mute);
+        }
+        .form-input {
+            background: var(--t-bg2);
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.68rem;
+            padding: 0.45rem 0.7rem;
+            outline: none;
+            transition: border-color 0.15s;
+            width: 100%;
+        }
+        .form-input:focus { border-color: var(--t-accent); }
+        .form-input::placeholder { color: var(--t-text-mute); }
+
+        .form-select {
+            background: var(--t-bg2);
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 0.68rem;
+            padding: 0.45rem 0.7rem;
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+        }
+        .form-select:focus { border-color: var(--t-accent); }
+
+        .create-form-msg {
+            margin-top: 0.6rem;
+            font-size: 0.62rem;
+            min-height: 1.2rem;
+        }
+        .msg-ok  { color: var(--t-green); }
+        .msg-err { color: var(--t-red); }
 
         /* ── DATA SYNC SECTION ───────────────────────── */
         .sync-controls {
@@ -366,8 +494,6 @@
             margin-top: 0.3rem;
         }
 
-
-
         /* ── EMPTY STATE ─────────────────────────────── */
         .empty-state {
             text-align: center;
@@ -411,7 +537,80 @@
 <div class="main">
 
     <!-- ══════════════════════════════════════════════════
-         SECTION 1 — DATA SYNC
+         SECTION 1 — USER MANAGEMENT (superuser only)
+    ══════════════════════════════════════════════════ -->
+    {% if request.user.is_superuser %}
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-title">// USER MANAGEMENT</span>
+            <div style="display:flex;gap:0.5rem;align-items:center">
+                <span id="userCount" style="font-size:0.6rem;color:var(--t-text-mute)"></span>
+                <button class="btn btn-sm" onclick="loadUsers()">⟳ REFRESH</button>
+                <button class="btn btn-sm btn-primary" onclick="toggleCreatePanel()">+ NEW USER</button>
+            </div>
+        </div>
+        <div class="section-body">
+
+            <!-- user table -->
+            <div class="user-table-wrap">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>USERNAME</th>
+                            <th>EMAIL</th>
+                            <th>JOINED</th>
+                            <th>LAST LOGIN</th>
+                            <th>STATUS</th>
+                            <th>ROLE</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        <tr><td colspan="7" class="empty-state"><span class="spinner"></span> Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- create user panel (hidden by default) -->
+            <div class="create-user-panel" id="createUserPanel">
+                <div class="create-form-label">// CREATE NEW USER</div>
+                <div class="create-form-grid">
+                    <div class="form-field">
+                        <span class="form-field-label">USERNAME</span>
+                        <input type="text" class="form-input" id="newUsername" placeholder="username" autocomplete="off">
+                    </div>
+                    <div class="form-field">
+                        <span class="form-field-label">PASSWORD</span>
+                        <input type="password" class="form-input" id="newPassword" placeholder="password">
+                    </div>
+                    <div class="form-field">
+                        <span class="form-field-label">EMAIL (optional)</span>
+                        <input type="email" class="form-input" id="newEmail" placeholder="email@example.com">
+                    </div>
+                    <div class="form-field">
+                        <span class="form-field-label">ROLE</span>
+                        <select class="form-select" id="newRole">
+                            <option value="user">User</option>
+                            <option value="staff">Staff (admin)</option>
+                            <option value="superuser">Superuser</option>
+                        </select>
+                    </div>
+                    <div class="form-field" style="justify-content:flex-end">
+                        <button class="btn btn-success" onclick="createUser()">✓ CREATE</button>
+                    </div>
+                    <div class="form-field" style="justify-content:flex-end">
+                        <button class="btn" onclick="toggleCreatePanel()">✕ CANCEL</button>
+                    </div>
+                </div>
+                <div class="create-form-msg" id="createUserMsg"></div>
+            </div>
+
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ══════════════════════════════════════════════════
+         SECTION 2 — DATA SYNC
     ══════════════════════════════════════════════════ -->
     <div class="section-card">
         <div class="section-header">
@@ -467,7 +666,7 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════
-         SECTION 2 — LLM MANAGEMENT
+         SECTION 3 — LLM MANAGEMENT
     ══════════════════════════════════════════════════ -->
     <div class="section-card">
         <div class="section-header">
@@ -520,8 +719,166 @@
 {{ source_data_json|json_script:"source-data" }}
 <script>
 const CSRF = '{{ csrf_token }}';
-
+const CURRENT_USER = '{{ request.user.username }}';
 const SOURCE_DATA = JSON.parse(document.getElementById("source-data").textContent);
+
+// ============================================================
+//  USER MANAGEMENT
+// ============================================================
+async function loadUsers() {
+    const tbody = document.getElementById('userTableBody');
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><span class="spinner"></span></td></tr>';
+
+    try {
+        const resp = await fetch('{% url "user_list" %}');
+        const data = await resp.json();
+
+        document.getElementById('userCount').textContent =
+            `${data.users.length} user${data.users.length !== 1 ? 's' : ''}`;
+
+        if (data.users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No users found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.users.map(u => {
+            const isYou = u.username === CURRENT_USER;
+            return `
+            <tr>
+                <td>
+                    <span class="user-name">${escHtml(u.username)}</span>
+                    ${isYou ? '<span class="user-you">YOU</span>' : ''}
+                </td>
+                <td>${escHtml(u.email || '—')}</td>
+                <td style="font-size:0.62rem;color:var(--t-text-mute)">${escHtml(u.date_joined)}</td>
+                <td style="font-size:0.62rem;color:var(--t-text-mute)">${escHtml(u.last_login)}</td>
+                <td>
+                    <span class="status-badge ${u.is_active ? 'badge-active' : 'badge-inactive'}">
+                        ${u.is_active ? '● ACTIVE' : '○ INACTIVE'}
+                    </span>
+                </td>
+                <td>
+                    ${u.is_superuser
+                        ? '<span class="status-badge badge-super">SUPERUSER</span>'
+                        : u.is_staff
+                            ? '<span class="status-badge badge-staff">STAFF</span>'
+                            : '<span class="status-badge" style="color:var(--t-text-mute)">USER</span>'
+                    }
+                </td>
+                <td>
+                    <div class="user-actions">
+                        ${!isYou ? `
+                            <button class="btn btn-sm ${u.is_active ? 'btn-amber' : 'btn-success'}"
+                                onclick="toggleUserActive(${u.id}, ${u.is_active})">
+                                ${u.is_active ? 'DEACTIVATE' : 'ACTIVATE'}
+                            </button>
+                            <button class="btn btn-sm ${u.is_staff ? 'btn-amber' : ''}"
+                                onclick="toggleUserStaff(${u.id}, ${u.is_staff})">
+                                ${u.is_staff ? 'REMOVE STAFF' : 'MAKE STAFF'}
+                            </button>
+                            <button class="btn btn-sm btn-danger"
+                                onclick="deleteUser(${u.id}, '${escHtml(u.username)}')">
+                                DELETE
+                            </button>
+                        ` : '<span style="font-size:0.58rem;color:var(--t-text-mute)">current session</span>'}
+                    </div>
+                </td>
+            </tr>
+            `;
+        }).join('');
+
+    } catch(e) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:var(--t-red)">❌ ${e.message}</td></tr>`;
+    }
+}
+
+function toggleCreatePanel() {
+    const panel = document.getElementById('createUserPanel');
+    panel.classList.toggle('visible');
+    if (panel.classList.contains('visible')) {
+        document.getElementById('newUsername').focus();
+        document.getElementById('createUserMsg').textContent = '';
+    }
+}
+
+async function createUser() {
+    const username = document.getElementById('newUsername').value.trim();
+    const password = document.getElementById('newPassword').value;
+    const email    = document.getElementById('newEmail').value.trim();
+    const role     = document.getElementById('newRole').value;
+    const msg      = document.getElementById('createUserMsg');
+
+    if (!username || !password) {
+        msg.textContent = '⚠ Username and password are required.';
+        msg.className   = 'create-form-msg msg-err';
+        return;
+    }
+
+    try {
+        const resp = await fetch('{% url "user_create" %}', {
+            method : 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body   : JSON.stringify({ username, password, email, role }),
+        });
+        const data = await resp.json();
+
+        if (data.ok) {
+            msg.textContent = `✅ User "${username}" created successfully.`;
+            msg.className   = 'create-form-msg msg-ok';
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('newEmail').value    = '';
+            document.getElementById('newRole').value     = 'user';
+            loadUsers();
+        } else {
+            msg.textContent = `❌ ${data.error}`;
+            msg.className   = 'create-form-msg msg-err';
+        }
+    } catch(e) {
+        msg.textContent = `❌ ${e.message}`;
+        msg.className   = 'create-form-msg msg-err';
+    }
+}
+
+async function toggleUserActive(userId, currentlyActive) {
+    try {
+        const resp = await fetch('{% url "user_update" %}', {
+            method : 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body   : JSON.stringify({ user_id: userId, field: 'is_active', value: !currentlyActive }),
+        });
+        const data = await resp.json();
+        if (data.ok) loadUsers();
+        else alert(data.error);
+    } catch(e) { alert(e.message); }
+}
+
+async function toggleUserStaff(userId, currentlyStaff) {
+    try {
+        const resp = await fetch('{% url "user_update" %}', {
+            method : 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body   : JSON.stringify({ user_id: userId, field: 'is_staff', value: !currentlyStaff }),
+        });
+        const data = await resp.json();
+        if (data.ok) loadUsers();
+        else alert(data.error);
+    } catch(e) { alert(e.message); }
+}
+
+async function deleteUser(userId, username) {
+    if (!confirm(`Permanently delete user "${username}"? This cannot be undone.`)) return;
+    try {
+        const resp = await fetch('{% url "user_delete" %}', {
+            method : 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body   : JSON.stringify({ user_id: userId }),
+        });
+        const data = await resp.json();
+        if (data.ok) loadUsers();
+        else alert(data.error);
+    } catch(e) { alert(e.message); }
+}
 
 // ============================================================
 //  DATA SYNC
@@ -579,24 +936,18 @@ function updateSelectedCount() {
 }
 
 async function startSync() {
-    if (selectedSources.size === 0) {
-        alert('Please select at least one source.');
-        return;
-    }
-    if (syncJobId) {
-        alert('A sync is already running.');
-        return;
-    }
+    if (selectedSources.size === 0) { alert('Please select at least one source.'); return; }
+    if (syncJobId) { alert('A sync is already running.'); return; }
 
     const btn = document.getElementById('startSyncBtn');
-    btn.disabled = true;
+    btn.disabled    = true;
     btn.textContent = '⏳ RUNNING...';
 
     document.getElementById('syncStatusBadge').textContent = 'RUNNING';
     document.getElementById('syncStatusBadge').style.color = 'var(--t-amber)';
 
-    const log    = document.getElementById('syncLog');
-    const prog   = document.getElementById('syncProgress');
+    const log  = document.getElementById('syncLog');
+    const prog = document.getElementById('syncProgress');
     log.innerHTML = '';
     log.classList.add('visible');
     prog.classList.add('visible');
@@ -612,9 +963,8 @@ async function startSync() {
         const data = await resp.json();
         if (!resp.ok) { appendLog(`❌ ${data.error}`, 'error'); resetSync(); return; }
 
-        syncJobId = data.job_id;
+        syncJobId     = data.job_id;
         syncPollTimer = setInterval(pollSyncStatus, 2000);
-
     } catch(e) {
         appendLog(`❌ Failed to start: ${e.message}`, 'error');
         resetSync();
@@ -627,7 +977,6 @@ async function pollSyncStatus() {
         const resp = await fetch(`{% url 'sync_status' '00000000' %}`.replace('00000000', syncJobId));
         const data = await resp.json();
 
-        // add new log lines
         data.log.forEach((line, i) => {
             const lineId = `log-${i}`;
             if (!document.getElementById(lineId)) {
@@ -648,7 +997,6 @@ async function pollSyncStatus() {
             document.getElementById('syncProgress').classList.remove('visible');
             resetSync();
         }
-
     } catch(e) { /* ignore transient errors */ }
 }
 
@@ -738,28 +1086,20 @@ async function setActiveModel(name) {
         body   : JSON.stringify({ model: name }),
     });
     const data = await resp.json();
-    if (data.ok) {
-        activeModel = name;
-        loadModels();
-    } else {
-        alert(data.error);
-    }
+    if (data.ok) { activeModel = name; loadModels(); }
+    else alert(data.error);
 }
 
 async function deleteModel(name) {
     if (!confirm(`Delete model "${name}"? This cannot be undone.`)) return;
-
     const resp = await fetch('{% url "llm_delete" %}', {
         method : 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
         body   : JSON.stringify({ model: name }),
     });
     const data = await resp.json();
-    if (data.ok) {
-        loadModels();
-    } else {
-        alert(data.error);
-    }
+    if (data.ok) loadModels();
+    else alert(data.error);
 }
 
 async function pullModel() {
@@ -770,7 +1110,7 @@ async function pullModel() {
 
     pullingModel = model;
 
-    const btn  = document.getElementById('pullBtn');
+    const btn = document.getElementById('pullBtn');
     btn.disabled    = true;
     btn.textContent = '⏳ PULLING...';
 
@@ -778,8 +1118,8 @@ async function pullModel() {
     const fill = document.getElementById('pullBarFill');
     const text = document.getElementById('pullStatusText');
     wrap.classList.add('visible');
-    fill.style.width   = '0%';
-    text.textContent   = `Starting download of ${model}...`;
+    fill.style.width  = '0%';
+    text.textContent  = `Starting download of ${model}...`;
 
     try {
         const resp = await fetch('{% url "llm_pull" %}', {
@@ -790,9 +1130,7 @@ async function pullModel() {
         const data = await resp.json();
         if (!data.ok) { text.textContent = `❌ ${data.error}`; resetPull(); return; }
 
-        // poll for progress
         pullPollTimer = setInterval(() => pollPullStatus(model), 1500);
-
     } catch(e) {
         text.textContent = `❌ ${e.message}`;
         resetPull();
@@ -842,9 +1180,11 @@ function escHtml(s) {
 //  INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
+    {% if request.user.is_superuser %}
+    loadUsers();
+    {% endif %}
     loadModels();
 
-    // populate source counts
     Object.entries(SOURCE_DATA).forEach(([key, data]) => {
         const el = document.getElementById(`src-count-${key}`);
         if (el) el.textContent = `${data.count.toLocaleString()} docs · ${data.date || 'Never'}`;

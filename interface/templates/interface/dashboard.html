@@ -144,6 +144,11 @@
             align-items: start;
         }
 
+        /* when status panel is hidden, carousel takes full width */
+        .top-row.carousel-only {
+            grid-template-columns: 1fr;
+        }
+
         @media (max-width: 900px) {
             .top-row { grid-template-columns: 1fr; }
         }
@@ -553,7 +558,6 @@
             box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
         }
 
-        /* code source link — amber tint */
         .msg-code-link {
             font-size: 0.65rem;
             color: #ffb300;
@@ -586,16 +590,11 @@
             opacity: 0.7;
         }
 
-        .thinking-bar {
-            display: flex;
-            gap: 3px;
-            align-items: center;
-        }
+        .thinking-bar { display: flex; gap: 3px; align-items: center; }
 
         .thinking-bar span {
             display: inline-block;
-            width: 3px;
-            height: 12px;
+            width: 3px; height: 12px;
             background: var(--accent-secondary);
             animation: thinking-pulse 1s infinite ease-in-out;
             box-shadow: 0 0 4px rgba(0, 229, 255, 0.6);
@@ -695,9 +694,7 @@
         /* ============================================
            ARTICLE MODAL — Kindle paper theme
            ============================================ */
-        #articleModalOverlay {
-            background: rgba(0, 0, 0, 0.75);
-        }
+        #articleModalOverlay { background: rgba(0, 0, 0, 0.75); }
 
         #articleModalOverlay .modal {
             border-color: #c8b89a;
@@ -710,21 +707,9 @@
         #articleModalOverlay .modal::before,
         #articleModalOverlay .modal::after { display: none; }
 
-        /* reading progress bar */
-        .article-progress-bar {
-            height: 3px;
-            background: #e0d5c0;
-            flex-shrink: 0;
-        }
+        .article-progress-bar { height: 3px; background: #e0d5c0; flex-shrink: 0; }
+        .article-progress-fill { height: 100%; width: 0%; background: #8b6914; transition: width 0.1s ease; }
 
-        .article-progress-fill {
-            height: 100%;
-            width: 0%;
-            background: #8b6914;
-            transition: width 0.1s ease;
-        }
-
-        /* article header */
         #articleModalOverlay .modal-header {
             background: #ede8dd;
             border-bottom: 1px solid #c8b89a;
@@ -734,12 +719,7 @@
             gap: 0.6rem;
         }
 
-        .article-header-top {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+        .article-header-top { width: 100%; display: flex; align-items: center; justify-content: space-between; }
 
         #articleModalOverlay .modal-title {
             font-family: Georgia, 'Times New Roman', serif;
@@ -751,12 +731,7 @@
             line-height: 1.3;
         }
 
-        .article-header-meta {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            width: 100%;
-        }
+        .article-header-meta { display: flex; align-items: center; gap: 1rem; width: 100%; }
 
         .article-badge {
             font-family: 'Courier New', monospace;
@@ -767,217 +742,91 @@
             text-transform: uppercase;
         }
 
-        .article-badge.wiki {
-            background: #dceeff;
-            color: #1a4a7a;
-            border: 1px solid #a8c8ee;
-        }
+        .article-badge.wiki      { background: #dceeff; color: #1a4a7a; border: 1px solid #a8c8ee; }
+        .article-badge.gutenberg { background: #e8f4e8; color: #1a5c1a; border: 1px solid #a8d4a8; }
+        .article-badge.wikibooks { background: #fff4e0; color: #7a4a00; border: 1px solid #f0c060; }
+        .article-badge.wikivoyage{ background: #e0f0ff; color: #004a8c; border: 1px solid #80b8f0; }
+        .article-badge.ifixit    { background: #ffe8e8; color: #8c1a1a; border: 1px solid #f0a0a0; }
+        .article-badge.arxiv     { background: #f0e8ff; color: #4a1a8c; border: 1px solid #c0a0f0; }
 
-        .article-badge.gutenberg {
-            background: #e8f4e8;
-            color: #1a5c1a;
-            border: 1px solid #a8d4a8;
-        }
-        .article-badge.wikibooks {
-            background: #fff4e0;
-            color: #7a4a00;
-            border: 1px solid #f0c060;
-        }
-        .article-badge.wikivoyage {
-            background: #e0f0ff;
-            color: #004a8c;
-            border: 1px solid #80b8f0;
-        }
-        .article-badge.ifixit {
-            background: #ffe8e8;
-            color: #8c1a1a;
-            border: 1px solid #f0a0a0;
-        }
-        .article-badge.arxiv {
-            background: #f0e8ff;
-            color: #4a1a8c;
-            border: 1px solid #c0a0f0;
-        }
+        .article-author   { font-family: Georgia, serif; font-size: 0.75rem; color: #6b5a3e; font-style: italic; }
+        .article-read-time{ font-family: 'Courier New', monospace; font-size: 0.6rem; color: #9c8a6e; margin-left: auto; }
 
-        .article-author {
-            font-family: Georgia, serif;
-            font-size: 0.75rem;
-            color: #6b5a3e;
-            font-style: italic;
-        }
+        #articleModalOverlay .modal-close { background: transparent; border: 1px solid #c8b89a; color: #6b5a3e; font-size: 0.8rem; width: 30px; height: 30px; flex-shrink: 0; }
+        #articleModalOverlay .modal-close:hover { background: #c8b89a; color: #2c1810; border-color: #8b6914; }
 
-        .article-read-time {
-            font-family: 'Courier New', monospace;
-            font-size: 0.6rem;
-            color: #9c8a6e;
-            margin-left: auto;
-        }
+        .article-theme-toggle { font-family: 'Courier New', monospace; font-size: 0.6rem; letter-spacing: 0.1rem; padding: 0.2rem 0.6rem; cursor: pointer; border-radius: 2px; transition: all 0.2s ease; flex-shrink: 0; }
+        .article-theme-toggle.light { background: #2c1810; color: #f5f0e8; border: 1px solid #2c1810; }
+        .article-theme-toggle.dark  { background: #f5f0e8; color: #2c1810; border: 1px solid #c8b89a; }
 
-        /* close button — matches paper theme */
-        #articleModalOverlay .modal-close {
-            background: transparent;
-            border: 1px solid #c8b89a;
-            color: #6b5a3e;
-            font-size: 0.8rem;
-            width: 30px;
-            height: 30px;
-            flex-shrink: 0;
-        }
-
-        #articleModalOverlay .modal-close:hover {
-            background: #c8b89a;
-            color: #2c1810;
-            border-color: #8b6914;
-        }
-
-        /* theme toggle button */
-        .article-theme-toggle {
-            font-family: 'Courier New', monospace;
-            font-size: 0.6rem;
-            letter-spacing: 0.1rem;
-            padding: 0.2rem 0.6rem;
-            cursor: pointer;
-            border-radius: 2px;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-
-        .article-theme-toggle.light {
-            background: #2c1810;
-            color: #f5f0e8;
-            border: 1px solid #2c1810;
-        }
-
-        .article-theme-toggle.dark {
-            background: #f5f0e8;
-            color: #2c1810;
-            border: 1px solid #c8b89a;
-        }
-
-        /* article body — paper mode (default) */
         #articleModalBody {
-            background: #f5f0e8;
-            color: #2c1810;
+            background: #f5f0e8; color: #2c1810;
             font-family: Georgia, 'Times New Roman', serif;
-            font-size: 1rem;
-            line-height: 1.9;
-            padding: 2rem 3rem;
-            scrollbar-width: thin;
-            scrollbar-color: #c8b89a transparent;
+            font-size: 1rem; line-height: 1.9; padding: 2rem 3rem;
+            scrollbar-width: thin; scrollbar-color: #c8b89a transparent;
         }
 
         #articleModalBody::-webkit-scrollbar       { width: 5px; }
         #articleModalBody::-webkit-scrollbar-track { background: #ede8dd; }
         #articleModalBody::-webkit-scrollbar-thumb { background: #c8b89a; border-radius: 2px; }
 
-        /* dark mode — sepia night */
-        #articleModalOverlay.dark-mode .modal  { background: #1a1208; border-color: #4a3820; }
-        #articleModalOverlay.dark-mode .modal-header { background: #231a0e; border-color: #4a3820; }
-        #articleModalOverlay.dark-mode .modal-title  { color: #e8d5b0; }
-        #articleModalOverlay.dark-mode .article-author { color: #a89060; }
+        #articleModalOverlay.dark-mode .modal         { background: #1a1208; border-color: #4a3820; }
+        #articleModalOverlay.dark-mode .modal-header  { background: #231a0e; border-color: #4a3820; }
+        #articleModalOverlay.dark-mode .modal-title   { color: #e8d5b0; }
+        #articleModalOverlay.dark-mode .article-author{ color: #a89060; }
         #articleModalOverlay.dark-mode .article-read-time { color: #7a6040; }
-        #articleModalOverlay.dark-mode .modal-close  { border-color: #4a3820; color: #a89060; }
+        #articleModalOverlay.dark-mode .modal-close   { border-color: #4a3820; color: #a89060; }
         #articleModalOverlay.dark-mode .modal-close:hover { background: #4a3820; color: #e8d5b0; }
-        #articleModalOverlay.dark-mode .article-progress-bar { background: #2a1e10; }
+        #articleModalOverlay.dark-mode .article-progress-bar  { background: #2a1e10; }
         #articleModalOverlay.dark-mode .article-progress-fill { background: #c8962a; }
         #articleModalOverlay.dark-mode #articleModalBody {
-            background: #1a1208;
-            color: #e8d5b0;
+            background: #1a1208; color: #e8d5b0;
             scrollbar-color: #4a3820 transparent;
         }
         #articleModalOverlay.dark-mode #articleModalBody::-webkit-scrollbar-track { background: #231a0e; }
         #articleModalOverlay.dark-mode #articleModalBody::-webkit-scrollbar-thumb { background: #4a3820; }
 
-        /* article text formatting */
-        .article-text-content p {
-            margin-bottom: 1.2em;
-            text-indent: 1.5em;
-        }
-
-        .article-text-content p:first-child {
-            text-indent: 0;
-        }
+        .article-text-content p { margin-bottom: 1.2em; text-indent: 1.5em; }
+        .article-text-content p:first-child { text-indent: 0; }
 
         .article-categories {
-            font-family: 'Courier New', monospace;
-            font-size: 0.6rem;
-            color: #9c8a6e;
-            letter-spacing: 0.08rem;
-            margin-top: 2rem;
-            padding-top: 1rem;
+            font-family: 'Courier New', monospace; font-size: 0.6rem; color: #9c8a6e;
+            letter-spacing: 0.08rem; margin-top: 2rem; padding-top: 1rem;
             border-top: 1px solid #c8b89a;
         }
 
-        #articleModalOverlay.dark-mode .article-categories {
-            color: #7a6040;
-            border-color: #4a3820;
-        }
+        #articleModalOverlay.dark-mode .article-categories { color: #7a6040; border-color: #4a3820; }
 
         /* ============================================
            CODE MODAL — amber theme
            ============================================ */
-        #codeModal .modal {
-            border-color: #ffb300;
-            box-shadow: 0 0 40px rgba(255, 179, 0, 0.15);
-        }
+        #codeModal .modal        { border-color: #ffb300; box-shadow: 0 0 40px rgba(255, 179, 0, 0.15); }
+        #codeModal .modal::before{ border-color: #ffb300; }
+        #codeModal .modal::after { border-color: #ffb300; }
+        #codeModal .modal-title  { color: #ffb300; text-shadow: 0 0 8px rgba(255, 179, 0, 0.5); }
 
-        #codeModal .modal::before { border-color: #ffb300; }
-        #codeModal .modal::after  { border-color: #ffb300; }
-        #codeModal .modal-title   { color: #ffb300; text-shadow: 0 0 8px rgba(255, 179, 0, 0.5); }
-
-        .code-block-wrapper {
-            position: relative;
-            margin-bottom: 1.2rem;
-        }
-
-        .code-lang-label {
-            font-size: 0.55rem;
-            letter-spacing: 0.2rem;
-            color: #ffb300;
-            margin-bottom: 0.4rem;
-            opacity: 0.7;
-        }
+        .code-block-wrapper { position: relative; margin-bottom: 1.2rem; }
+        .code-lang-label    { font-size: 0.55rem; letter-spacing: 0.2rem; color: #ffb300; margin-bottom: 0.4rem; opacity: 0.7; }
 
         .code-block {
             background: rgba(255, 179, 0, 0.04);
             border: 1px solid rgba(255, 179, 0, 0.2);
-            padding: 1rem;
-            overflow-x: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            color: #e0c97f;
-            line-height: 1.7;
-            white-space: pre;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 179, 0, 0.2) transparent;
+            padding: 1rem; overflow-x: auto;
+            font-family: 'Courier New', monospace; font-size: 0.75rem;
+            color: #e0c97f; line-height: 1.7; white-space: pre;
+            scrollbar-width: thin; scrollbar-color: rgba(255, 179, 0, 0.2) transparent;
         }
 
         .code-copy-btn {
-            position: absolute;
-            top: 1.6rem;
-            right: 0.5rem;
-            background: transparent;
-            border: 1px solid rgba(255, 179, 0, 0.3);
-            color: #ffb300;
-            font-family: 'Courier New', monospace;
-            font-size: 0.55rem;
-            letter-spacing: 0.1rem;
-            padding: 0.2rem 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            position: absolute; top: 1.6rem; right: 0.5rem;
+            background: transparent; border: 1px solid rgba(255, 179, 0, 0.3);
+            color: #ffb300; font-family: 'Courier New', monospace;
+            font-size: 0.55rem; letter-spacing: 0.1rem; padding: 0.2rem 0.5rem;
+            cursor: pointer; transition: all 0.2s ease;
         }
+        .code-copy-btn:hover { background: rgba(255, 179, 0, 0.1); border-color: #ffb300; }
 
-        .code-copy-btn:hover {
-            background: rgba(255, 179, 0, 0.1);
-            border-color: #ffb300;
-        }
-
-        .code-prose {
-            color: var(--text-secondary);
-            font-size: 0.78rem;
-            line-height: 1.8;
-            margin-bottom: 1rem;
-        }
+        .code-prose { color: var(--text-secondary); font-size: 0.78rem; line-height: 1.8; margin-bottom: 1rem; }
     </style>
     <script src="{% static 'interface/theme.js' %}"></script>
 </head>
@@ -998,8 +847,8 @@
 
     <div class="main">
 
-        <!-- top row -->
-        <div class="top-row">
+        <!-- top row: carousel always shown, status panel only for staff -->
+        <div class="top-row{% if not request.user.is_staff and not request.user.is_superuser %} carousel-only{% endif %}">
 
             <!-- carousel -->
             <div class="carousel-section">
@@ -1007,43 +856,52 @@
                 <div class="carousel">
                     <button class="carousel-arrow left" id="arrowLeft">&lt;</button>
                     <div class="carousel-track">
+
                         <div class="c-card" data-index="0" data-url="/data-master/catalogue/">
                             <div class="c-card-tag">01</div>
                             <div class="c-card-title">CATALOGUE</div>
                             <div class="c-card-desc">Search articles, books, guides &amp; PDFs</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
+
                         <div class="c-card" data-index="1" data-url="{% url 'notes_deck' %}">
                             <div class="c-card-tag">02</div>
                             <div class="c-card-title">NOTES</div>
                             <div class="c-card-desc">Create & share notes with the network</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
+
+                        {% if request.user.is_staff or request.user.is_superuser %}
                         <div class="c-card" data-index="2" data-url="/system-logger/log/">
                             <div class="c-card-tag">03</div>
                             <div class="c-card-title">LOG</div>
                             <div class="c-card-desc">System metrics, users & activity</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
+
                         <div class="c-card" data-index="3" data-url="/system-logger/">
                             <div class="c-card-tag">04</div>
                             <div class="c-card-title">SYSTEM</div>
                             <div class="c-card-desc">Monitor system health</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
-                        <div class="c-card" data-index="4">
-                            <div class="c-card-tag">05</div>
+                        {% endif %}
+
+                        <div class="c-card" data-index="{% if request.user.is_staff or request.user.is_superuser %}4{% else %}2{% endif %}">
+                            <div class="c-card-tag">{% if request.user.is_staff or request.user.is_superuser %}05{% else %}03{% endif %}</div>
                             <div class="c-card-title">SETTINGS</div>
                             <div class="c-card-desc">Configure preferences</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
+
                     </div>
                     <button class="carousel-arrow right" id="arrowRight">&gt;</button>
                 </div>
                 <div class="carousel-dots" id="dots"></div>
             </div>
 
-            <!-- status panels -->
+            <!-- system status panel — staff/superuser only -->
+            {% if request.user.is_staff or request.user.is_superuser %}
             <div class="status-stack">
                 <div class="panel">
                     <div class="panel-header">// SYSTEM STATUS</div>
@@ -1081,6 +939,8 @@
                     <div class="progress-label" id="stat-cpu-label">CPU: --%</div>
                 </div>
             </div>
+            {% endif %}
+
         </div>
 
         <!-- prompt section -->
@@ -1181,7 +1041,6 @@
 
         updateCarousel();
 
-        // navigate when clicking the centre card
         cards.forEach((card, i) => {
             card.addEventListener('click', () => {
                 if (card.classList.contains('pos-center')) {
@@ -1199,12 +1058,6 @@
         const promptInput  = document.getElementById('promptInput');
         const promptSubmit = document.getElementById('promptSubmit');
         const messages     = document.getElementById('conversationMessages');
-
-        // ══════════════════════════════════════════
-        //  CHAT HISTORY — Valkey (server-side)
-        //  Persists across sessions, tabs, restarts
-        //  Keyed per user, TTL 7 days
-        // ══════════════════════════════════════════
 
         async function restoreHistory() {
             try {
@@ -1230,13 +1083,9 @@
             }
         }
 
-        // history is now managed server-side — these are no-ops kept for compatibility
         function addToHistory() {}
         function saveHistory() {}
 
-        // ══════════════════════════════════════════
-        //  TEXTAREA AUTO RESIZE
-        // ══════════════════════════════════════════
         promptInput.addEventListener('input', () => {
             promptInput.style.height = 'auto';
             promptInput.style.height = promptInput.scrollHeight + 'px';
@@ -1251,9 +1100,6 @@
 
         promptSubmit.addEventListener('click', handleSubmit);
 
-        // ══════════════════════════════════════════
-        //  SUBMIT
-        // ══════════════════════════════════════════
         function handleSubmit() {
             const query = promptInput.value.trim();
             if (!query) return;
@@ -1293,9 +1139,6 @@
             });
         }
 
-        // ══════════════════════════════════════════
-        //  RENDER FUNCTIONS
-        // ══════════════════════════════════════════
         function renderUserMessage(text) {
             const div = document.createElement('div');
             div.classList.add('msg-user');
@@ -1307,7 +1150,6 @@
             scrollToBottom();
         }
 
-        // in-memory store for code blocks
         const codeStore = {};
         let codeStoreIndex = 0;
 
@@ -1322,7 +1164,6 @@
 
             const refItems = [];
 
-            // source document links — wiki and books
             if (sources && sources.length > 0) {
                 sources.forEach(source => {
                     const iconMap = {
@@ -1333,7 +1174,7 @@
                         'arxiv'     : '🔬',
                         'wikipedia' : '📄',
                     };
-                    const icon = iconMap[source.source_type] || '📄';
+                    const icon  = iconMap[source.source_type] || '📄';
                     const label = source.author
                         ? `${icon} ${source.title} — ${source.author}`
                         : `${icon} ${source.title}`;
@@ -1345,7 +1186,6 @@
                 });
             }
 
-            // code block link
             if (codeBlocks && codeBlocks.length > 0) {
                 const key   = 'code_' + (codeStoreIndex++);
                 codeStore[key] = codeBlocks;
@@ -1372,9 +1212,6 @@
             scrollToBottom();
         }
 
-        // ══════════════════════════════════════════
-        //  THINKING INDICATOR
-        // ══════════════════════════════════════════
         function addThinking() {
             const id  = 'thinking-' + Date.now();
             const div = document.createElement('div');
@@ -1396,9 +1233,6 @@
             if (el) el.remove();
         }
 
-        // ══════════════════════════════════════════
-        //  CODE BLOCK EXTRACTION
-        // ══════════════════════════════════════════
         function extractCodeBlocks(text) {
             const blocks = [];
             const regex  = /```([a-zA-Z0-9]*)\n?([\s\S]*?)```/g;
@@ -1413,37 +1247,29 @@
             return text.replace(/```[a-zA-Z0-9]*\n?[\s\S]*?```/g, '').trim();
         }
 
-        // ══════════════════════════════════════════
-        //  ARTICLE MODAL — Kindle paper theme
-        // ══════════════════════════════════════════
-        const articleOverlay   = document.getElementById('articleModalOverlay');
-        const articleTitle     = document.getElementById('articleModalTitle');
-        const articleBody      = document.getElementById('articleModalBody');
-        const articleHeaderMeta= document.getElementById('articleHeaderMeta');
-        const articleProgress  = document.getElementById('articleProgressFill');
-        const articleThemeBtn  = document.getElementById('articleThemeToggle');
-
+        // ── Article modal ──
+        const articleOverlay    = document.getElementById('articleModalOverlay');
+        const articleTitle      = document.getElementById('articleModalTitle');
+        const articleBody       = document.getElementById('articleModalBody');
+        const articleHeaderMeta = document.getElementById('articleHeaderMeta');
+        const articleProgress   = document.getElementById('articleProgressFill');
+        const articleThemeBtn   = document.getElementById('articleThemeToggle');
         let articleDarkMode = false;
 
-        // reading progress bar
         articleBody.addEventListener('scroll', () => {
             const scrollable = articleBody.scrollHeight - articleBody.clientHeight;
             const progress   = scrollable > 0 ? (articleBody.scrollTop / scrollable) * 100 : 100;
             articleProgress.style.width = progress + '%';
         });
 
-        // dark/light toggle
         articleThemeBtn.addEventListener('click', () => {
             articleDarkMode = !articleDarkMode;
             articleOverlay.classList.toggle('dark-mode', articleDarkMode);
             articleThemeBtn.textContent = articleDarkMode ? '☀ LIGHT' : '☾ DARK';
-            articleThemeBtn.className   = articleDarkMode
-                ? 'article-theme-toggle dark'
-                : 'article-theme-toggle light';
+            articleThemeBtn.className   = articleDarkMode ? 'article-theme-toggle dark' : 'article-theme-toggle light';
         });
 
         function formatArticleText(rawText) {
-            // split on double newlines → paragraphs, single newlines become spaces
             const paragraphs = rawText.split(/\n{2,}/);
             return paragraphs
                 .map(p => p.replace(/\n/g, ' ').trim())
@@ -1469,24 +1295,10 @@
             fetch(`/data-master/article/${slug}/json/`)
                 .then(r => r.json())
                 .then(data => {
-                    // build meta row
                     const sourceType = (data.source_type || '').toLowerCase();
-                    const badgeMap = {
-                        'gutenberg' : 'gutenberg',
-                        'wikibooks' : 'wikibooks',
-                        'wikivoyage': 'wikivoyage',
-                        'ifixit'    : 'ifixit',
-                        'arxiv'     : 'arxiv',
-                    };
+                    const badgeMap   = { 'gutenberg':'gutenberg','wikibooks':'wikibooks','wikivoyage':'wikivoyage','ifixit':'ifixit','arxiv':'arxiv' };
                     const badgeClass = badgeMap[sourceType] || 'wiki';
-                    const labelMap = {
-                        'gutenberg' : '📖 GUTENBERG',
-                        'wikibooks' : '📚 WIKIBOOKS',
-                        'wikivoyage': '🗺️ WIKIVOYAGE',
-                        'ifixit'    : '🔧 IFIXIT',
-                        'arxiv'     : '🔬 ARXIV',
-                        'wikipedia' : '📄 WIKIPEDIA',
-                    };
+                    const labelMap   = { 'gutenberg':'📖 GUTENBERG','wikibooks':'📚 WIKIBOOKS','wikivoyage':'🗺️ WIKIVOYAGE','ifixit':'🔧 IFIXIT','arxiv':'🔬 ARXIV','wikipedia':'📄 WIKIPEDIA' };
                     const badgeLabel = labelMap[sourceType] || '📄 WIKIPEDIA';
                     const readTime   = estimateReadTime(data.full_text || '');
 
@@ -1515,14 +1327,11 @@
         document.getElementById('articleModalClose').addEventListener('click', () => {
             articleOverlay.classList.remove('active');
         });
-
         articleOverlay.addEventListener('click', (e) => {
             if (e.target === articleOverlay) articleOverlay.classList.remove('active');
         });
 
-        // ══════════════════════════════════════════
-        //  CODE MODAL
-        // ══════════════════════════════════════════
+        // ── Code modal ──
         const codeOverlay = document.getElementById('codeModal');
         const codeTitle   = document.getElementById('codeModalTitle');
         const codeBody    = document.getElementById('codeModalBody');
@@ -1530,7 +1339,6 @@
         function openCodeModal(blocks) {
             codeTitle.textContent = '// CODE OUTPUT';
             codeBody.innerHTML    = '';
-
             blocks.forEach((block, i) => {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('code-block-wrapper');
@@ -1541,7 +1349,6 @@
                 `;
                 codeBody.appendChild(wrapper);
             });
-
             codeOverlay.classList.add('active');
         }
 
@@ -1556,12 +1363,10 @@
         document.getElementById('codeModalClose').addEventListener('click', () => {
             codeOverlay.classList.remove('active');
         });
-
         codeOverlay.addEventListener('click', (e) => {
             if (e.target === codeOverlay) codeOverlay.classList.remove('active');
         });
 
-        // shared ESC to close any modal
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 articleOverlay.classList.remove('active');
@@ -1569,28 +1374,22 @@
             }
         });
 
-        // ══════════════════════════════════════════
-        //  CLEAR HISTORY
-        // ══════════════════════════════════════════
+        // ── Clear history ──
         document.getElementById('clearHistory').addEventListener('click', () => {
             fetch('/data-master/prompt/clear/', {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                }).catch(() => {});
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            }).catch(() => {});
             messages.innerHTML = '<div class="conversation-empty" id="emptyState">> AWAITING INPUT_</div>';
         });
 
-        // ══════════════════════════════════════════
-        //  HELPERS
-        // ══════════════════════════════════════════
+        // ── Helpers ──
         function scrollToBottom() { messages.scrollTop = messages.scrollHeight; }
 
         function escapeHtml(text) {
             return String(text)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
         }
 
@@ -1608,14 +1407,11 @@
             return cookieValue;
         }
 
-        // ══════════════════════════════════════════
-        //  INIT
-        // ══════════════════════════════════════════
+        // ── Init ──
         restoreHistory();
 
-        // ══════════════════════════════════════════
-        //  SYSTEM STATUS POLLING — every 30 seconds
-        // ══════════════════════════════════════════
+        // ── System status polling — staff only ──
+        {% if request.user.is_staff or request.user.is_superuser %}
         function updateSystemStatus() {
             fetch('/system-logger/status/')
                 .then(r => r.json())
@@ -1628,7 +1424,6 @@
                         net1El.textContent = '● OFFLINE';
                         net1El.className   = 'status-offline';
                     }
-
                     document.getElementById('stat-uptime').textContent = data.uptime;
 
                     const cpu = data.cpu.percent.toFixed(1);
@@ -1654,6 +1449,7 @@
 
         updateSystemStatus();
         setInterval(updateSystemStatus, 30000);
+        {% endif %}
     </script>
 
 {% include "interface/theme_panel.html" %}
