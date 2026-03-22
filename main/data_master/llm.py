@@ -308,12 +308,26 @@ def ask(query, user_id=None):
         )
 
         # ── call LLM ──
+        # read active model from Valkey so all workers use the same value
+        try:
+            from django.core.cache import cache
+            active_model = cache.get('net1:active_model') or OLLAMA_MODEL
+        except Exception:
+            active_model = OLLAMA_MODEL
+
         response = client.chat(
-            model   = OLLAMA_MODEL,
+            model   = active_model,
             messages= messages,
             options = {'temperature': 0.7, 'num_predict': 600},
             think   = False,
         )
+
+        # response = client.chat(
+        #     model   = OLLAMA_MODEL,
+        #     messages= messages,
+        #     options = {'temperature': 0.7, 'num_predict': 600},
+        #     think   = False,
+        # )
 
         raw    = response.message.content.strip()
         parsed = _parse_response(raw)

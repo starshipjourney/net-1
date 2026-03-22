@@ -478,6 +478,51 @@ def pdf_tag_delete(request, tag_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+# ============================================================
+#  EDIT PDF TAG (AJAX)  — add after pdf_tag_delete in views.py
+# ============================================================
+@require_POST
+@login_required(login_url='login')
+def pdf_tag_edit(request, tag_id):
+    """Edit an existing PDF tag — admin only."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'error': 'Admin only'}, status=403)
+    try:
+        tag  = PdfTag.objects.get(id=tag_id)
+        data = json.loads(request.body)
+
+        name   = data.get('name', '').strip()
+        colour = data.get('colour', tag.colour).strip()
+        icon   = data.get('icon', tag.icon).strip()
+        desc   = data.get('description', tag.description or '').strip()
+
+        if not name:
+            return JsonResponse({'error': 'Name required'}, status=400)
+
+        # check for duplicate name (excluding this tag)
+        from django.utils.text import slugify
+        new_slug = slugify(name)
+        if PdfTag.objects.filter(slug=new_slug).exclude(id=tag_id).exists():
+            return JsonResponse({'error': 'A tag with that name already exists'}, status=400)
+
+        tag.name        = name
+        tag.slug        = new_slug
+        tag.colour      = colour
+        tag.icon        = icon
+        tag.description = desc
+        tag.save()
+
+        return JsonResponse({
+            'id'    : tag.id,
+            'name'  : tag.name,
+            'slug'  : tag.slug,
+            'colour': tag.colour,
+            'icon'  : tag.icon,
+        })
+    except PdfTag.DoesNotExist:
+        return JsonResponse({'error': 'Tag not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 @require_POST
 @login_required(login_url='login')
@@ -515,7 +560,7 @@ def pdf_tag_assign(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-
+        
 @require_GET
 @login_required(login_url='login')
 def pdf_tags_for_pdf(request):

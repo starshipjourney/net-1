@@ -1,4 +1,47 @@
-__pycache__/
-*.pyc
+# ============================================================
+#  NET-1 .gitignore
+#  Place at: net-1/.gitignore  (project root, not main/)
+# ============================================================
+
+# Secrets — never commit
 .env
-*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+.venv/
+
+# Django generated
+*.log
+db.sqlite3
+
+# Data volumes — server-specific, back up separately, never in git
+data/db/
+data/static/
+data/dumps/
+data/exports/
+data/ollama/
+logs/
+
+# User content — back up separately
+data/media/
+data/pdfs/
+data/pdf_thumbs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo

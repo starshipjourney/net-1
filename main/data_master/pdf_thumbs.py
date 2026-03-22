@@ -32,16 +32,19 @@ from django.conf import settings
 # ============================================================
 #  PATHS — read from settings so they work in containers too
 # ============================================================
-PDF_DIR   = Path(getattr(settings, 'PDF_DIR',   Path(BASE_DIR) / 'data' / 'pdfs'))
-THUMB_DIR = Path(getattr(settings, 'THUMB_DIR', Path(BASE_DIR) / 'data' / 'pdf_thumbs'))
+PDF_DIR   = Path(getattr(settings, 'PDF_ROOT',        Path(BASE_DIR) / 'data' / 'pdfs'))
+THUMB_DIR = Path(getattr(settings, 'PDF_THUMBS_ROOT', Path(BASE_DIR) / 'data' / 'pdf_thumbs'))
 THUMB_DIR.mkdir(parents=True, exist_ok=True)
 
 # ============================================================
-#  VALKEY  (Redis-compatible)
+#  VALKEY — read host/port from settings, not hardcoded
 # ============================================================
 try:
     import redis
-    _vk = redis.Redis(host='localhost', port=6379, db=1, decode_responses=True)
+    from decouple import config as _cfg
+    _vk_host = _cfg('VALKEY_HOST', default='localhost')
+    _vk_port = _cfg('VALKEY_PORT', default=6379, cast=int)
+    _vk = redis.Redis(host=_vk_host, port=_vk_port, db=1, decode_responses=True)
     _vk.ping()
     VALKEY_OK = True
     print("  ✅ Valkey connected")
@@ -51,7 +54,7 @@ except Exception as e:
     print(f"  ⚠️  Valkey unavailable: {e} — running without cache")
 
 CACHE_PREFIX = 'net1:pdf_thumb:'
-CACHE_TTL    = 60 * 60 * 24 * 30   # 30 days — thumbnails don't expire often
+CACHE_TTL    = 60 * 60 * 24 * 30   # 30 days
 
 
 def _cache_key(pdf_path):
@@ -76,7 +79,7 @@ def is_cached(pdf_path):
         return False
     if _vk:
         return bool(_vk.get(_cache_key(pdf_path)))
-    return True   # no Valkey — just check file exists
+    return True
 
 
 def generate_thumbnail(pdf_path, size=(180, 240)):
@@ -88,16 +91,13 @@ def generate_thumbnail(pdf_path, size=(180, 240)):
     pdf_path = Path(pdf_path)
     thumb    = _thumb_path(pdf_path)
 
-    # already done
     if is_cached(pdf_path):
         return thumb
 
-    # lock via Valkey to prevent concurrent generation of same file
     lock_key = _cache_key(pdf_path) + ':lock'
     if _vk:
         acquired = _vk.set(lock_key, '1', nx=True, ex=30)
         if not acquired:
-            # another process is generating — wait briefly then return existing
             time.sleep(1)
             return thumb if thumb.exists() else None
 
@@ -117,14 +117,9 @@ def generate_thumbnail(pdf_path, size=(180, 240)):
             return None
 
         img = pages[0]
-
-        # crop to exact size maintaining aspect ratio
         img.thumbnail(size, Image.LANCZOS)
-
-        # save as WebP (small file size, good quality)
         img.save(str(thumb), 'WEBP', quality=75, method=4)
 
-        # cache the result
         if _vk:
             _vk.set(_cache_key(pdf_path), '1', ex=CACHE_TTL)
 

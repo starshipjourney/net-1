@@ -1,0 +1,37 @@
+# ============================================================
+#  NET-1 — .dockerignore
+#  Place at: net-1/main/.dockerignore
+#  Keeps the Docker image lean and clean
+# ============================================================
+
+# Virtual environment — never goes in the image
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Dev/debug files
+debugger.py
+*.log
+
+# Test files
+*/tests.py
+
+# Git
+.git/
+.gitignore
+
+# Environment secrets
+.env
+.env.*
+
+# Requirements folder (only requirements.txt is needed)
+requirements/
+
+# Editor
+.vscode/
+.idea/
+*.swp

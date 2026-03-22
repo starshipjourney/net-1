@@ -63,7 +63,7 @@ def status_view(request):
     try:
         cpu  = psutil.cpu_percent(interval=0.1)
         ram  = psutil.virtual_memory()
-        disk = psutil.disk_usage(str(BASE_DIR))
+        disk = psutil.disk_usage(str(BASE_DIR.parent / 'data'))
 
         elapsed = int(time.time() - _START_TIME)
         h, m    = divmod(elapsed // 60, 60)
@@ -404,6 +404,34 @@ def sync_status(request, job_id):
 # ============================================================
 #  LLM MANAGEMENT  (Ollama API)
 # ============================================================
+ACTIVE_MODEL_KEY = 'net1:active_model'
+
+def _get_active_model():
+    """Read active model from Valkey, fall back to settings default."""
+    try:
+        from django.core.cache import cache
+        stored = cache.get(ACTIVE_MODEL_KEY)
+        if stored:
+            return stored
+    except Exception:
+        pass
+    return OLLAMA_MODEL
+
+
+def _set_active_model(model):
+    """Persist active model to Valkey so all Gunicorn workers see it."""
+    try:
+        from django.core.cache import cache
+        cache.set(ACTIVE_MODEL_KEY, model, timeout=None)  # no expiry
+    except Exception:
+        pass
+    # also update this worker's in-memory reference
+    global OLLAMA_MODEL
+    OLLAMA_MODEL = model
+    _llm_module.OLLAMA_MODEL = model
+    _llm_module.client = _llm_module.ollama.Client(host=_llm_module.OLLAMA_HOST)
+
+
 def _ollama(method, path, **kwargs):
     """Helper to call Ollama API."""
     url = f'{OLLAMA_HOST}/api/{path}'
@@ -418,6 +446,7 @@ def llm_list(request):
     if not (request.user.is_staff or request.user.is_superuser):
         return JsonResponse({'error': 'Admin only'}, status=403)
     try:
+        active = _get_active_model()
         resp   = _ollama('get', 'tags')
         models = resp.json().get('models', [])
         result = []
@@ -427,9 +456,9 @@ def llm_list(request):
                 'name'      : m['name'],
                 'size_gb'   : size_gb,
                 'modified'  : m.get('modified_at', '')[:10],
-                'is_active' : m['name'] == OLLAMA_MODEL,
+                'is_active' : m['name'] == active,
             })
-        return JsonResponse({'models': result, 'active': OLLAMA_MODEL})
+        return JsonResponse({'models': result, 'active': active})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
@@ -441,16 +470,12 @@ def llm_set_active(request):
     if not (request.user.is_staff or request.user.is_superuser):
         return JsonResponse({'error': 'Admin only'}, status=403)
     try:
-        global OLLAMA_MODEL
         data  = json.loads(request.body)
         model = data.get('model', '').strip()
         if not model:
             return JsonResponse({'error': 'Model name required'}, status=400)
 
-        OLLAMA_MODEL = model
-        _llm_module.OLLAMA_MODEL = model
-        _llm_module.client       = _llm_module.ollama.Client(host=_llm_module.OLLAMA_HOST)
-
+        _set_active_model(model)
         return JsonResponse({'ok': True, 'active': model})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

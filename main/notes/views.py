@@ -59,7 +59,6 @@ def notes_deck(request):
         all_notes = base_notes.order_by(order_field)
 
     if tag_filter == '__untagged__':
-        # notes with no author tags AND no personal tags assigned by this user
         personally_tagged_ids = NotePersonalTag.objects.filter(
             assigned_by=user
         ).values_list('note_id', flat=True)
@@ -67,7 +66,6 @@ def notes_deck(request):
             id__in=personally_tagged_ids
         )
     elif tag_filter:
-        # match notes tagged by author OR personally tagged by this user
         author_tagged   = Q(tags__name=tag_filter)
         personal_tagged = Q(
             personal_tags__tag__name=tag_filter,
@@ -85,11 +83,8 @@ def notes_deck(request):
             Q(title__icontains=search) | Q(body_html__icontains=search)
         )
 
-    # all tags this user has created
     user_tags = NoteTag.objects.filter(created_by=user)
 
-    # sidebar tag stats — ALL tags the user created, with note counts + last updated
-    # counts include both author-tagged notes and personally-tagged notes
     sidebar_tags = (
         NoteTag.objects
         .filter(created_by=user)
@@ -105,11 +100,9 @@ def notes_deck(request):
         .order_by('name')
     )
 
-    # combine counts in Python (Django can't SUM two Count annotations cleanly)
     for tag in sidebar_tags:
         tag.note_count = tag.author_count + tag.personal_count
 
-    # untagged count — no author tags AND no personal tags from this user
     personally_tagged_ids = NotePersonalTag.objects.filter(
         assigned_by=user
     ).values_list('note_id', flat=True)
@@ -119,7 +112,6 @@ def notes_deck(request):
     untagged_count        = untagged_qs.count()
     untagged_last_updated = untagged_qs.aggregate(last=Max('updated_at'))['last']
 
-    # visibility counts
     shared_count = base_notes.filter(visibility='shared').count()
     public_count = base_notes.filter(visibility='public').count()
 
@@ -184,7 +176,7 @@ def note_create(request):
 
 
 # ============================================================
-#  NOTE DETAIL — read view with comments
+#  NOTE DETAIL
 # ============================================================
 @login_required
 def note_detail(request, note_id):
@@ -201,16 +193,13 @@ def note_detail(request, note_id):
 
     is_owner = note.author == request.user
 
-    # personal tags this user has assigned (only relevant for non-owners)
     personal_tags = NotePersonalTag.objects.filter(
         note        = note,
         assigned_by = request.user,
     ).select_related('tag') if not is_owner else []
 
-    # user's own tags available to assign
     user_tags = NoteTag.objects.filter(created_by=request.user) if not is_owner else []
 
-    # ids of already-assigned personal tags
     assigned_tag_ids = [pt.tag.id for pt in personal_tags]
 
     return render(request, 'notes/detail.html', {
@@ -247,7 +236,6 @@ def note_edit(request, note_id):
         tags    = NoteTag.objects.filter(id__in=tag_ids, created_by=request.user)
         note.tags.set(tags)
 
-        # update share list — replace with new selection
         share_users = request.POST.getlist('share_with')
         if note.visibility == 'shared':
             note.shares.all().delete()
@@ -363,7 +351,6 @@ def image_upload(request):
     if not image:
         return JsonResponse({'error': 'No image provided'}, status=400)
 
-    # if note_id provided, attach to note
     note = None
     if note_id:
         try:
@@ -412,7 +399,6 @@ def note_personal_tags(request, note_id):
             assigned_by = request.user,
         ).delete()
 
-    # return current personal tags for this user on this note
     current = NotePersonalTag.objects.filter(
         note        = note,
         assigned_by = request.user,
@@ -457,6 +443,61 @@ def tag_create(request):
 
 
 # ============================================================
+#  EDIT TAG (AJAX)
+# ============================================================
+@login_required
+@require_POST
+def tag_edit(request, tag_id):
+    tag = get_object_or_404(NoteTag, id=tag_id, created_by=request.user)
+
+    try:
+        data  = json.loads(request.body)
+    except json.JSONDecodeError:
+        # fallback to POST form data
+        data = request.POST
+
+    name  = data.get('name', '').strip()
+    color = data.get('color', tag.color).strip()
+    icon  = data.get('icon', tag.icon).strip()
+
+    if not name:
+        return JsonResponse({'error': 'Name required'}, status=400)
+
+    if NoteTag.objects.filter(
+        name=name, created_by=request.user
+    ).exclude(id=tag_id).exists():
+        return JsonResponse({'error': 'A tag with that name already exists'}, status=400)
+
+    tag.name  = name
+    tag.color = color
+    tag.icon  = icon
+    tag.save()
+
+    return JsonResponse({
+        'id'   : tag.id,
+        'name' : tag.name,
+        'color': tag.color,
+        'icon' : tag.icon,
+    })
+
+
+# ============================================================
+#  DELETE TAG (AJAX)
+# ============================================================
+@login_required
+@require_POST
+def tag_delete(request, tag_id):
+    tag = get_object_or_404(NoteTag, id=tag_id, created_by=request.user)
+
+    note_count = tag.notes.count() + tag.personal_assignments.filter(
+        assigned_by=request.user
+    ).count()
+
+    tag.delete()
+    return JsonResponse({'ok': True, 'removed_from': note_count})
+
+
+# ============================================================
 #  PDF EXPORT
 # ============================================================
 @login_required
@@ -466,7 +507,7 @@ def note_pdf(request, note_id):
     try:
         import weasyprint
     except ImportError:
-        return HttpResponse('WeasyPrint not installed. Run: pip install weasyprint --break-system-packages', status=500)
+        return HttpResponse('WeasyPrint not installed.', status=500)
 
     note = get_object_or_404(Note, id=note_id)
     if not note.is_accessible_by(request.user):
@@ -476,7 +517,6 @@ def note_pdf(request, note_id):
         'note'     : note,
         'base_url' : request.build_absolute_uri('/'),
     })
-    # base_url tells WeasyPrint how to resolve relative URLs like /media/...
     pdf_file = weasyprint.HTML(
         string   = html_string,
         base_url = request.build_absolute_uri('/'),
@@ -489,7 +529,7 @@ def note_pdf(request, note_id):
 
 
 # ============================================================
-#  REFERENCE SEARCH — search wiki + books for citation blocks
+#  REFERENCE SEARCH
 # ============================================================
 @login_required
 def ref_search(request):
@@ -512,7 +552,7 @@ def ref_search(request):
                 'source_type': doc.source_type,
                 'slug'       : doc.slug,
                 'summary'    : (doc.summary or '')[:300],
-                'full_text'  : (doc.full_text or '')[:8000],  # enough for passage selection
+                'full_text'  : (doc.full_text or '')[:8000],
             }
             for doc in results
         ]

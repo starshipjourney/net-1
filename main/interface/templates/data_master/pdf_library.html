@@ -50,10 +50,7 @@
         .navbar-page  { font-size: 0.65rem; letter-spacing: 0.25rem; color: var(--t-text-dim); }
         .navbar-right { display: flex; align-items: center; gap: 1rem; }
 
-        .nav-user {
-            font-size: 0.7rem;
-            color: var(--t-text-dim);
-        }
+        .nav-user { font-size: 0.7rem; color: var(--t-text-dim); }
         .nav-user span {
             color: var(--t-accent);
             text-shadow: 0 0 8px color-mix(in srgb, var(--t-accent) 50%, transparent);
@@ -83,10 +80,7 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn-logout:hover {
-            background: var(--t-accent);
-            color: var(--t-bg);
-        }
+        .btn-logout:hover { background: var(--t-accent); color: var(--t-bg); }
 
         /* ── LAYOUT ──────────────────────────────────── */
         .layout {
@@ -199,7 +193,6 @@
             color: var(--t-accent);
         }
 
-        /* admin tag dot */
         .tag-colour-dot {
             width: 8px; height: 8px;
             border-radius: 50%;
@@ -323,21 +316,12 @@
             display: flex;
             align-items: stretch;
         }
-        .pdf-cover-img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .pdf-cover-canvas {
-            width: 100%; height: 100%;
-            display: block;
-        }
+        .pdf-cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .pdf-cover-canvas { width: 100%; height: 100%; display: block; }
 
-        /* admin tag button overlay */
         .pdf-tag-btn {
             position: absolute;
-            top: 0.4rem;
-            left: 0.4rem;
+            top: 0.4rem; left: 0.4rem;
             background: rgba(0,0,0,0.6);
             border: 1px solid rgba(255,255,255,0.2);
             color: #fff;
@@ -355,12 +339,7 @@
         .pdf-card:hover .pdf-tag-btn { opacity: 1; }
         .pdf-tag-btn:hover { background: rgba(0,0,0,0.8); border-color: var(--t-accent); color: var(--t-accent); }
 
-        .pdf-info {
-            padding: 0.65rem 0.8rem 0.7rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-        }
+        .pdf-info { padding: 0.65rem 0.8rem 0.7rem; display: flex; flex-direction: column; gap: 0.35rem; }
 
         .pdf-name {
             font-size: 0.7rem;
@@ -373,12 +352,7 @@
             overflow: hidden;
         }
 
-        .pdf-tags-row {
-            display: flex;
-            gap: 0.3rem;
-            flex-wrap: wrap;
-            min-height: 18px;
-        }
+        .pdf-tags-row { display: flex; gap: 0.3rem; flex-wrap: wrap; min-height: 18px; }
 
         .pdf-tag-chip {
             font-size: 0.52rem;
@@ -389,10 +363,7 @@
             white-space: nowrap;
         }
 
-        .pdf-meta {
-            font-size: 0.57rem;
-            color: var(--t-text-mute);
-        }
+        .pdf-meta { font-size: 0.57rem; color: var(--t-text-mute); }
 
         /* ── EMPTY STATE ──────────────────────────────── */
         .empty-state {
@@ -481,8 +452,8 @@
             align-items: center;
             transition: all 0.15s;
         }
-        .btn-pdf-action:hover       { border-color: var(--t-accent); color: var(--t-accent); }
-        .btn-pdf-close:hover        { border-color: var(--t-red);    color: var(--t-red); }
+        .btn-pdf-action:hover  { border-color: var(--t-accent); color: var(--t-accent); }
+        .btn-pdf-close:hover   { border-color: var(--t-red);    color: var(--t-red); }
         .pdf-modal-frame { flex: 1; width: 100%; border: none; background: #fff; }
 
         /* ── TAG MANAGER MODAL ────────────────────────── */
@@ -592,7 +563,50 @@
             padding: 1.5rem 0;
         }
 
-        /* ── NEW TAG MODAL ────────────────────────────── */
+        .tag-delete-btn {
+            background: transparent;
+            border: none;
+            color: var(--t-text-mute);
+            cursor: pointer;
+            font-size: 0.7rem;
+            padding: 0 0.2rem;
+            flex-shrink: 0;
+            transition: color 0.15s;
+        }
+        .tag-delete-btn:hover { color: var(--t-red); }
+
+        .tag-edit-btn {
+            background: transparent;
+            border: none;
+            color: var(--t-text-mute);
+            cursor: pointer;
+            font-size: 0.7rem;
+            padding: 0 0.2rem;
+            flex-shrink: 0;
+            transition: color 0.15s;
+        }
+        .tag-edit-btn:hover { color: var(--t-accent); }
+
+        /* ── SIDEBAR TAG ACTION BUTTONS ─────────────────── */
+        .sidebar-tag-btn {
+            display: none;
+            background: transparent;
+            border: 1px solid var(--t-border-hi);
+            color: var(--t-text-mute);
+            font-size: 0.58rem;
+            width: 18px; height: 18px;
+            align-items: center; justify-content: center;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.15s;
+            flex-shrink: 0;
+            padding: 0;
+        }
+        .sidebar-item:hover .sidebar-tag-btn { display: flex; }
+        .sidebar-tag-btn:hover { border-color: var(--t-accent); color: var(--t-accent); }
+        .sidebar-tag-delete:hover { border-color: var(--t-red) !important; color: var(--t-red) !important; }
+
+        /* ── NEW / EDIT TAG MODALS ────────────────────── */
         .new-tag-modal-overlay {
             display: none;
             position: fixed;
@@ -614,16 +628,14 @@
             box-shadow: 0 16px 48px rgba(0,0,0,0.4);
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-        }
+        .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+
         .form-label {
             font-size: 0.58rem;
             letter-spacing: 0.1rem;
             color: var(--t-text-mute);
         }
+
         .form-input {
             background: var(--t-bg);
             border: 1px solid var(--t-border-hi);
@@ -636,23 +648,6 @@
             border-radius: 3px;
         }
         .form-input:focus { border-color: var(--t-accent); }
-
-        .colour-row {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .colour-swatch {
-            width: 26px; height: 26px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: transform 0.1s;
-            flex-shrink: 0;
-        }
-        .colour-swatch:hover { transform: scale(1.15); }
-        .colour-swatch.selected { border-color: var(--t-text); transform: scale(1.1); }
 
         .emoji-grid {
             display: flex;
@@ -694,6 +689,17 @@
         .colour-grid::-webkit-scrollbar       { width: 3px; }
         .colour-grid::-webkit-scrollbar-thumb { background: var(--t-border-hi); border-radius: 2px; }
 
+        .colour-swatch {
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.1s;
+            flex-shrink: 0;
+        }
+        .colour-swatch:hover    { transform: scale(1.15); }
+        .colour-swatch.selected { border-color: var(--t-text); transform: scale(1.1); }
+
         .btn-submit {
             background: var(--t-accent);
             border: none;
@@ -707,6 +713,7 @@
             border-radius: 3px;
         }
         .btn-submit:hover { opacity: 0.85; }
+
         .btn-cancel {
             background: transparent;
             border: 1px solid var(--t-border-hi);
@@ -722,32 +729,9 @@
 
         .form-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
 
-        .tag-delete-btn {
-            background: transparent;
-            border: none;
-            color: var(--t-text-mute);
-            cursor: pointer;
-            font-size: 0.7rem;
-            padding: 0 0.2rem;
-            flex-shrink: 0;
-            transition: color 0.15s;
-        }
-        .tag-delete-btn:hover { color: var(--t-red); }
-
         /* ── TAG DESCRIPTION PANEL ───────────────────── */
-        .tag-desc-panel {
-            border-top: 1px solid var(--t-border);
-            padding: 0.8rem 1.2rem;
-            flex-shrink: 0;
-        }
-        .tag-desc-text {
-            font-size: 0.65rem;
-            color: var(--t-text-dim);
-            line-height: 1.6;
-            font-style: italic;
-        }
-
-        /* ── CANVAS COVER PALETTES ────────────────────── */
+        .tag-desc-panel { border-top: 1px solid var(--t-border); padding: 0.8rem 1.2rem; flex-shrink: 0; }
+        .tag-desc-text  { font-size: 0.65rem; color: var(--t-text-dim); line-height: 1.6; font-style: italic; }
     </style>
 </head>
 <body>
@@ -804,18 +788,25 @@
             {% for tag in tags %}
             <div class="sidebar-item" data-tag="{{ tag.slug }}"
                  data-desc="{{ tag.description|default:'' }}"
-                 onclick="selectTag('{{ tag.slug }}', this)"
-                 id="tag-item-{{ tag.slug }}">
+                 id="tag-item-{{ tag.slug }}"
+                 style="position:relative;">
                 <div class="tag-colour-dot" style="background:'{{ tag.colour }}'"></div>
-                <span class="sidebar-item-icon">{{ tag.icon }}</span>
-                <span class="sidebar-item-name">{{ tag.name }}</span>
+                <span class="sidebar-item-icon" onclick="selectTag('{{ tag.slug }}', this.closest('.sidebar-item'))">{{ tag.icon }}</span>
+                <span class="sidebar-item-name" onclick="selectTag('{{ tag.slug }}', this.closest('.sidebar-item'))" style="cursor:pointer">{{ tag.name }}</span>
                 <span class="sidebar-item-count" id="tag-count-{{ tag.slug }}">–</span>
+                {% if is_admin %}
+                <button class="sidebar-tag-btn"
+                        onclick="event.stopPropagation();openEditPdfTagModal({{ tag.id }},'{{ tag.name|escapejs }}','{{ tag.colour }}','{{ tag.icon }}')"
+                        title="Edit tag">✎</button>
+                <button class="sidebar-tag-btn sidebar-tag-delete"
+                        onclick="event.stopPropagation();deleteSidebarTag({{ tag.id }},'{{ tag.name|escapejs }}')"
+                        title="Delete tag">✕</button>
+                {% endif %}
             </div>
             {% endfor %}
             {% endif %}
         </nav>
 
-        <!-- tag description panel — shown when a tag is selected -->
         <div class="tag-desc-panel" id="tagDescPanel" style="display:none">
             <div class="tag-desc-text" id="tagDescText"></div>
         </div>
@@ -874,7 +865,7 @@
     </div>
 </div>
 
-<!-- ── NEW TAG MODAL (admin only) ─────────────────────── -->
+<!-- ── NEW TAG MODAL ──────────────────────────────────── -->
 {% if is_admin %}
 <div class="new-tag-modal-overlay" id="newTagModal">
     <div class="new-tag-modal">
@@ -907,9 +898,38 @@
         </div>
     </div>
 </div>
+
+<!-- ── EDIT TAG MODAL ─────────────────────────────────── -->
+<div class="new-tag-modal-overlay" id="editPdfTagModal">
+    <div class="new-tag-modal">
+        <div class="tag-modal-header">
+            <span class="tag-modal-title">// EDIT TAG</span>
+            <button class="tag-modal-close" onclick="closeEditPdfTagModal()">✕</button>
+        </div>
+        <div class="tag-modal-body">
+            <input type="hidden" id="editPdfTagId">
+            <div class="form-group">
+                <label class="form-label">TAG NAME</label>
+                <input type="text" class="form-input" id="editPdfTagName" placeholder="tag name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">ICON</label>
+                <div class="emoji-grid" id="editPdfEmojiGrid"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">COLOUR</label>
+                <div class="colour-grid" id="editPdfColourGrid"></div>
+            </div>
+            <div id="editPdfTagError" style="font-size:0.62rem;color:var(--t-red);display:none"></div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="closeEditPdfTagModal()">CANCEL</button>
+                <button class="btn-submit" onclick="submitEditPdfTag()">SAVE</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endif %}
 
-<!-- ── THEME PANEL ────────────────────────────────────── -->
 {% include "interface/theme_panel.html" %}
 
 <script>
@@ -925,10 +945,33 @@ let isLoading     = false;
 const PER_PAGE    = 40;
 
 // ============================================================
+//  EMOJI + COLOUR PALETTES
+// ============================================================
+const PDF_EMOJIS = [
+    '🏷️','📌','🔖','🗂️','📋','📁','🗃️','📂','🗄️','📊',
+    '📝','✏️','🖊️','📓','📔','📒','📃','📄','📑','🗒️',
+    '💡','🧠','🔍','🔎','💭','🤔','👁️','🧐','✨','⚡',
+    '💻','🖥️','⌨️','🖱️','📱','🔧','🛠️','⚙️','🔌','📡',
+    '🔬','🔭','🧬','🧪','🧫','⚗️','📐','📏','🗺️','🌐',
+    '🎨','🎵','🎶','🎬','📷','🖼️','🎭','🎤','📻','🎮',
+    '💬','👥','🤝','💼','🏢','📞','📧','📮','🗣️','👋',
+    '📅','📆','⏰','⏳','🕐','📈','📉','🗓️','⌛','🔔',
+    '🌱','🌿','🌍','🌙','⭐','☀️','🌊','🏔️','🌸','🍀',
+    '🔥','❤️','💛','💚','💙','💜','🏆','🎯','🚀','🎁',
+];
+
+const PDF_COLOURS = [
+    '#f59e0b','#ef4444','#3b82f6','#10b981','#8b5cf6',
+    '#ec4899','#f97316','#06b6d4','#84cc16','#6366f1',
+    '#14b8a6','#f43f5e','#a855f7','#0ea5e9','#22c55e',
+    '#eab308','#64748b','#78716c','#dc2626','#1d4ed8',
+];
+
+// ============================================================
 //  ELEMENTS
 // ============================================================
-const pdfGrid    = document.getElementById('pdfGrid');
-const spinner    = document.getElementById('spinner');
+const pdfGrid     = document.getElementById('pdfGrid');
+const spinner     = document.getElementById('spinner');
 const resultsMeta = document.getElementById('resultsMeta');
 const loadMoreRow = document.getElementById('loadMoreRow');
 const loadMoreBtn = document.getElementById('loadMoreBtn');
@@ -944,7 +987,6 @@ searchInput.addEventListener('input', () => {
     debounce = setTimeout(() => { currentPage = 1; loadResults(true); }, 300);
 });
 
-// sidebar tag filter search
 document.getElementById('tagSearch').addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase();
     document.querySelectorAll('#sidebarNav .sidebar-item[data-tag]').forEach(item => {
@@ -962,12 +1004,11 @@ function selectTag(slug, el) {
     document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
     if (el) el.classList.add('active');
 
-    // show tag description if available
     const descPanel = document.getElementById('tagDescPanel');
     const descText  = document.getElementById('tagDescText');
     const desc      = el ? el.dataset.desc : '';
     if (desc && desc.trim()) {
-        descText.textContent  = desc;
+        descText.textContent    = desc;
         descPanel.style.display = 'block';
     } else {
         descPanel.style.display = 'none';
@@ -976,38 +1017,25 @@ function selectTag(slug, el) {
     loadResults(true);
 }
 
-// ── Load sidebar counts ──────────────────────────────────
 async function loadSidebarCounts() {
     try {
-        // fetch all PDFs (no filter) to get full counts
-        const resp = await fetch(`{% url 'pdf_library_search' %}?tag=all&page=1`);
-        const data = await resp.json();
-        const allPdfs = data.pdfs || [];
-
-        // count untagged
         const untaggedResp = await fetch(`{% url 'pdf_library_search' %}?tag=untagged&page=1`);
         const untaggedData = await untaggedResp.json();
-        const untaggedEl = document.getElementById('untaggedCount');
+        const untaggedEl   = document.getElementById('untaggedCount');
         if (untaggedEl) untaggedEl.textContent = untaggedData.total_pdfs || 0;
 
-        // count per tag — fetch each tag's total
         document.querySelectorAll('.sidebar-item[data-tag]').forEach(async item => {
             const slug = item.dataset.tag;
             if (slug === 'all' || slug === 'untagged') return;
-
             const countEl = document.getElementById(`tag-count-${slug}`);
             if (!countEl) return;
-
             try {
                 const r = await fetch(`{% url 'pdf_library_search' %}?tag=${slug}&page=1`);
                 const d = await r.json();
                 countEl.textContent = d.total_pdfs || 0;
             } catch { countEl.textContent = '–'; }
         });
-
-    } catch(e) {
-        console.error('Failed to load sidebar counts:', e);
-    }
+    } catch(e) { console.error('Failed to load sidebar counts:', e); }
 }
 
 // ============================================================
@@ -1018,18 +1046,14 @@ async function loadResults(reset = false) {
     isLoading = true;
 
     if (reset) {
-        pdfGrid.innerHTML  = '';
+        pdfGrid.innerHTML = '';
         loadMoreRow.style.display = 'none';
         totalPdfs = 0;
     }
 
     spinner.classList.add('active');
 
-    const params = new URLSearchParams({
-        q   : currentQuery,
-        tag : currentTag,
-        page: currentPage,
-    });
+    const params = new URLSearchParams({ q: currentQuery, tag: currentTag, page: currentPage });
 
     try {
         const resp = await fetch(`{% url 'pdf_library_search' %}?${params}`);
@@ -1081,7 +1105,6 @@ function renderPdfs(pdfs) {
                     : currentTag === 'untagged'
                     ? 'All PDFs are tagged.'
                     : 'Drop PDF files into data/pdfs/ to get started.'}
-                ${IS_ADMIN && currentTag === 'all' ? '<br>Use the sidebar to create tags.' : ''}
             </div>
         </div>`;
         return;
@@ -1091,19 +1114,16 @@ function renderPdfs(pdfs) {
         const card = document.createElement('div');
         card.className = 'pdf-card';
 
-        // cover — real thumbnail or canvas
         const coverHtml = pdf.thumb_url
             ? `<img class="pdf-cover-img" src="${escHtml(pdf.thumb_url)}" alt="${escHtml(pdf.name)}" loading="lazy">`
             : `<canvas class="pdf-cover-canvas" width="170" height="190" data-name="${escHtml(pdf.name)}"></canvas>`;
 
-        // tag chips
         const tagsHtml = (pdf.tags || []).map(t =>
             `<span class="pdf-tag-chip" style="color:${t.colour};border-color:${t.colour}">
                 ${escHtml(t.icon)} ${escHtml(t.name)}
             </span>`
         ).join('');
 
-        // admin tag button
         const tagBtnHtml = IS_ADMIN
             ? `<button class="pdf-tag-btn" onclick="event.stopPropagation();openTagModal('${escHtml(pdf.filename)}','${escHtml(pdf.name)}')">🏷 TAG</button>`
             : '';
@@ -1124,7 +1144,6 @@ function renderPdfs(pdfs) {
         pdfGrid.appendChild(card);
     });
 
-    // draw canvas covers
     requestAnimationFrame(drawAllCovers);
 }
 
@@ -1174,7 +1193,7 @@ async function openTagModal(filepath, name) {
     tagList.innerHTML = '';
 
     if (!data.all_tags || data.all_tags.length === 0) {
-        tagList.innerHTML = '<div class="tag-modal-empty">No tags created yet. Create a tag using the + NEW TAG button.</div>';
+        tagList.innerHTML = '<div class="tag-modal-empty">No tags created yet. Use + NEW TAG to create one.</div>';
         return;
     }
 
@@ -1189,7 +1208,14 @@ async function openTagModal(filepath, name) {
             <div class="tag-checkbox">${tag.assigned ? '✓' : ''}</div>
             <span class="tag-item-icon">${escHtml(tag.icon)}</span>
             <span class="tag-item-name">${escHtml(tag.name)}</span>
-            ${IS_ADMIN ? `<button class="tag-delete-btn" onclick="event.stopPropagation();deleteTag(${tag.id})" title="Delete tag">✕</button>` : ''}
+            ${IS_ADMIN ? `
+                <button class="tag-edit-btn"
+                    onclick="event.stopPropagation();openEditPdfTagModal(${tag.id},'${escHtml(tag.name)}','${escHtml(tag.colour)}','${escHtml(tag.icon)}')"
+                    title="Edit tag">✎</button>
+                <button class="tag-delete-btn"
+                    onclick="event.stopPropagation();deleteTag(${tag.id})"
+                    title="Delete tag">✕</button>
+            ` : ''}
         `;
 
         item.addEventListener('click', () => toggleTagAssignment(item, tag));
@@ -1199,7 +1225,6 @@ async function openTagModal(filepath, name) {
 
 function closeTagModal() {
     tagModal.classList.remove('active');
-    // refresh grid to show updated tags
     loadResults(true);
 }
 
@@ -1209,16 +1234,8 @@ async function toggleTagAssignment(item, tag) {
 
     const resp = await fetch('{% url "pdf_tag_assign" %}', {
         method : 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken' : getCsrf(),
-        },
-        body: JSON.stringify({
-            tag_id  : tag.id,
-            pdf_path: _tagModalFile,
-            pdf_name: _tagModalName,
-            action  : action,
-        }),
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+        body   : JSON.stringify({ tag_id: tag.id, pdf_path: _tagModalFile, pdf_name: _tagModalName, action }),
     });
 
     if (resp.ok) {
@@ -1236,9 +1253,21 @@ async function deleteTag(tagId) {
         headers: { 'X-CSRFToken': getCsrf() },
     });
 
-    if (resp.ok) {
-        closeTagModal();
-        location.reload();   // reload to update sidebar
+    if (resp.ok) { closeTagModal(); location.reload(); }
+}
+
+async function deleteSidebarTag(tagId, name) {
+    if (!confirm(`Delete tag "${name}"? It will be removed from all PDFs.`)) return;
+
+    const resp = await fetch(`/data-master/library/tags/${tagId}/delete/`, {
+        method : 'POST',
+        headers: { 'X-CSRFToken': getCsrf() },
+    });
+
+    if (resp.ok) { location.reload(); }
+    else {
+        const data = await resp.json();
+        alert(data.error || 'Failed to delete tag');
     }
 }
 
@@ -1246,36 +1275,13 @@ async function deleteTag(tagId) {
 //  NEW TAG MODAL
 // ============================================================
 const newTagModal = document.getElementById('newTagModal');
-
-// ── EMOJI + COLOUR PICKER ──────────────────────────────────
-const PDF_EMOJIS = [
-    '🏷️','📌','🔖','🗂️','📋','📁','🗃️','📂','🗄️','📊',
-    '📝','✏️','🖊️','📓','📔','📒','📃','📄','📑','🗒️',
-    '💡','🧠','🔍','🔎','💭','🤔','👁️','🧐','✨','⚡',
-    '💻','🖥️','⌨️','🖱️','📱','🔧','🛠️','⚙️','🔌','📡',
-    '🔬','🔭','🧬','🧪','🧫','⚗️','📐','📏','🗺️','🌐',
-    '🎨','🎵','🎶','🎬','📷','🖼️','🎭','🎤','📻','🎮',
-    '💬','👥','🤝','💼','🏢','📞','📧','📮','🗣️','👋',
-    '📅','📆','⏰','⏳','🕐','📈','📉','🗓️','⌛','🔔',
-    '🌱','🌿','🌍','🌙','⭐','☀️','🌊','🏔️','🌸','🍀',
-    '🔥','❤️','💛','💚','💙','💜','🏆','🎯','🚀','🎁',
-];
-
-const PDF_COLOURS = [
-    '#f59e0b','#ef4444','#3b82f6','#10b981','#8b5cf6',
-    '#ec4899','#f97316','#06b6d4','#84cc16','#6366f1',
-    '#14b8a6','#f43f5e','#a855f7','#0ea5e9','#22c55e',
-    '#eab308','#64748b','#78716c','#dc2626','#1d4ed8',
-];
-
 let selectedEmoji  = PDF_EMOJIS[0];
 let selectedColour = PDF_COLOURS[0];
 
 function buildPdfPickers() {
-    const emojiGrid   = document.getElementById('pdfEmojiGrid');
-    const colourGrid  = document.getElementById('pdfColourGrid');
+    const emojiGrid  = document.getElementById('pdfEmojiGrid');
+    const colourGrid = document.getElementById('pdfColourGrid');
     if (!emojiGrid || !colourGrid) return;
-
     emojiGrid.innerHTML  = '';
     colourGrid.innerHTML = '';
 
@@ -1293,7 +1299,7 @@ function buildPdfPickers() {
 
     PDF_COLOURS.forEach((c, i) => {
         const sw = document.createElement('div');
-        sw.className = 'colour-swatch' + (i === 0 ? ' selected' : '');
+        sw.className        = 'colour-swatch' + (i === 0 ? ' selected' : '');
         sw.style.background = c;
         sw.addEventListener('click', () => {
             colourGrid.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('selected'));
@@ -1304,20 +1310,15 @@ function buildPdfPickers() {
     });
 }
 
-function openNewTagModal() {
-    if (newTagModal) {
-        newTagModal.classList.add('active');
-        buildPdfPickers();
-    }
-}
+function openNewTagModal() { if (newTagModal) { newTagModal.classList.add('active'); buildPdfPickers(); } }
 function closeNewTagModal() { if (newTagModal) newTagModal.classList.remove('active'); }
 
 async function submitNewTag() {
     const name  = document.getElementById('newTagName').value.trim();
     const desc  = document.getElementById('newTagDesc').value.trim();
     const errEl = document.getElementById('newTagError');
-
     errEl.style.display = 'none';
+
     if (!name) { errEl.textContent = 'Name is required'; errEl.style.display = 'block'; return; }
 
     const resp = await fetch('{% url "pdf_tag_create" %}', {
@@ -1327,17 +1328,96 @@ async function submitNewTag() {
     });
 
     const data = await resp.json();
-    if (resp.ok) {
-        closeNewTagModal();
-        location.reload();
-    } else {
-        errEl.textContent   = data.error || 'Failed to create tag';
-        errEl.style.display = 'block';
-    }
+    if (resp.ok) { closeNewTagModal(); location.reload(); }
+    else { errEl.textContent = data.error || 'Failed to create tag'; errEl.style.display = 'block'; }
 }
 
 // ============================================================
-//  CANVAS COVER GENERATOR  (same as catalogue)
+//  EDIT PDF TAG MODAL
+// ============================================================
+let editPdfSelectedEmoji  = PDF_EMOJIS[0];
+let editPdfSelectedColour = PDF_COLOURS[0];
+let editPdfPickersBuilt   = false;
+
+function buildEditPdfPickers() {
+    if (editPdfPickersBuilt) return;
+    editPdfPickersBuilt = true;
+
+    const emojiGrid  = document.getElementById('editPdfEmojiGrid');
+    const colourGrid = document.getElementById('editPdfColourGrid');
+    if (!emojiGrid || !colourGrid) return;
+
+    PDF_EMOJIS.forEach(e => {
+        const sw = document.createElement('div');
+        sw.className   = 'emoji-swatch';
+        sw.textContent = e;
+        sw.addEventListener('click', () => {
+            emojiGrid.querySelectorAll('.emoji-swatch').forEach(s => s.classList.remove('selected'));
+            sw.classList.add('selected');
+            editPdfSelectedEmoji = e;
+        });
+        emojiGrid.appendChild(sw);
+    });
+
+    PDF_COLOURS.forEach(c => {
+        const sw = document.createElement('div');
+        sw.className        = 'colour-swatch';
+        sw.style.background = c;
+        sw.dataset.colour   = c;
+        sw.addEventListener('click', () => {
+            colourGrid.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('selected'));
+            sw.classList.add('selected');
+            editPdfSelectedColour = c;
+        });
+        colourGrid.appendChild(sw);
+    });
+}
+
+function openEditPdfTagModal(id, name, colour, icon) {
+    buildEditPdfPickers();
+
+    document.getElementById('editPdfTagId').value   = id;
+    document.getElementById('editPdfTagName').value  = name;
+    document.getElementById('editPdfTagError').style.display = 'none';
+
+    editPdfSelectedColour = colour;
+    editPdfSelectedEmoji  = icon;
+
+    document.querySelectorAll('#editPdfColourGrid .colour-swatch').forEach(sw => {
+        sw.classList.toggle('selected', sw.dataset.colour === colour);
+    });
+    document.querySelectorAll('#editPdfEmojiGrid .emoji-swatch').forEach(sw => {
+        sw.classList.toggle('selected', sw.textContent === icon);
+    });
+
+    document.getElementById('editPdfTagModal').classList.add('active');
+}
+
+function closeEditPdfTagModal() {
+    document.getElementById('editPdfTagModal').classList.remove('active');
+}
+
+async function submitEditPdfTag() {
+    const id    = document.getElementById('editPdfTagId').value;
+    const name  = document.getElementById('editPdfTagName').value.trim();
+    const errEl = document.getElementById('editPdfTagError');
+    errEl.style.display = 'none';
+
+    if (!name) { errEl.textContent = 'Name is required'; errEl.style.display = 'block'; return; }
+
+    const resp = await fetch(`/data-master/library/tags/${id}/edit/`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+        body   : JSON.stringify({ name, icon: editPdfSelectedEmoji, colour: editPdfSelectedColour }),
+    });
+
+    const data = await resp.json();
+    if (resp.ok) { closeEditPdfTagModal(); location.reload(); }
+    else { errEl.textContent = data.error || 'Failed to save'; errEl.style.display = 'block'; }
+}
+
+// ============================================================
+//  CANVAS COVER GENERATOR
 // ============================================================
 const COVER_PALETTES = [
     ['#1a1a2e','#16213e','#e94560'], ['#0f3460','#533483','#e94560'],
@@ -1409,14 +1489,12 @@ function getCsrf() {
         ?.split('=')[1] || '';
 }
 
-// close on overlay click
 document.getElementById('tagModal').addEventListener('click', e => {
     if (e.target === document.getElementById('tagModal')) closeTagModal();
 });
 
-// ESC
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closePdfModal(); closeTagModal(); closeNewTagModal(); }
+    if (e.key === 'Escape') { closePdfModal(); closeTagModal(); closeNewTagModal(); closeEditPdfTagModal(); }
 });
 
 // ============================================================

@@ -875,24 +875,17 @@
                         <div class="c-card" data-index="2" data-url="/system-logger/log/">
                             <div class="c-card-tag">03</div>
                             <div class="c-card-title">LOG</div>
-                            <div class="c-card-desc">System metrics, users & activity</div>
+                            <div class="c-card-desc">System metrics & activities</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
 
                         <div class="c-card" data-index="3" data-url="/system-logger/">
                             <div class="c-card-tag">04</div>
                             <div class="c-card-title">SYSTEM</div>
-                            <div class="c-card-desc">Monitor system health</div>
+                            <div class="c-card-desc">Admin level settings</div>
                             <div class="c-card-enter">> ENTER</div>
                         </div>
                         {% endif %}
-
-                        <div class="c-card" data-index="{% if request.user.is_staff or request.user.is_superuser %}4{% else %}2{% endif %}">
-                            <div class="c-card-tag">{% if request.user.is_staff or request.user.is_superuser %}05{% else %}03{% endif %}</div>
-                            <div class="c-card-title">SETTINGS</div>
-                            <div class="c-card-desc">Configure preferences</div>
-                            <div class="c-card-enter">> ENTER</div>
-                        </div>
 
                     </div>
                     <button class="carousel-arrow right" id="arrowRight">&gt;</button>

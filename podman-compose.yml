@@ -1,0 +1,96 @@
+# ============================================================
+#  NET-1 — Podman Compose (Production)
+#  Place this file at: net-1/podman-compose.yml
+#
+#  Start:      podman-compose up -d
+#  Stop:       podman-compose down
+#  Logs:       podman-compose logs -f django
+#  Django CLI: podman-compose exec django python manage.py <cmd>
+# ============================================================
+
+version: "3.8"
+
+services:
+
+  # ── PostgreSQL ─────────────────────────────────────────────
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: net1-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME}
+      POSTGRES_USER:     ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./data/db/postgres:/var/lib/postgresql/data
+    networks:
+      - net1-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Valkey ────────────────────────────────────────────────
+  valkey:
+    image: docker.io/valkey/valkey:7-alpine
+    container_name: net1-valkey
+    restart: unless-stopped
+    volumes:
+      - ./data/db/valkey:/data
+    networks:
+      - net1-internal
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Ollama ────────────────────────────────────────────────
+  ollama:
+    image: docker.io/ollama/ollama:latest
+    container_name: net1-ollama
+    restart: unless-stopped
+    volumes:
+      - ./data/ollama:/root/.ollama
+    networks:
+      - net1-internal
+    # Uncomment if your server has a GPU:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: [gpu]
+
+  # ── Django (Gunicorn) ─────────────────────────────────────
+  django:
+    build:
+      context: ./main
+      dockerfile: Dockerfile
+    container_name: net1-django
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      # Data volumes — persisted on host, mounted into container
+      - ./data/static:/app/data/static
+      - ./data/media:/app/data/media
+      - ./data/pdfs:/app/data/pdfs
+      - ./data/pdf_thumbs:/app/data/pdf_thumbs
+      - ./data/dumps:/app/data/dumps
+      - ./data/exports:/app/data/exports
+      - ./logs:/app/logs
+    networks:
+      - net1-internal
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+
+networks:
+  net1-internal:
+    driver: bridge

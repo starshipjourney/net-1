@@ -12,6 +12,7 @@ urlpatterns = [
     # ── PDF Library ────────────────────────────────────────────
     path('library/',                          views.pdf_library_view,  name='pdf_library'),
     path('library/search/',                   views.pdf_library_search,name='pdf_library_search'),
+    path('library/tags/<int:tag_id>/edit/', views.pdf_tag_edit, name='pdf_tag_edit'),
  
     # ── PDF Tags (admin) ───────────────────────────────────────
     path('library/tags/create/',              views.pdf_tag_create,    name='pdf_tag_create'),
