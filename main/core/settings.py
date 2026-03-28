@@ -137,15 +137,16 @@ USE_TZ        = True
 #  Matches actual net-1/ folder structure
 # ============================================================
 STATIC_URL  = '/static/'
-STATIC_ROOT = ROOT_DIR / 'data' / 'static'
+STATIC_ROOT = BASE_DIR / 'data' / 'static'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL   = '/media/'
-MEDIA_ROOT  = ROOT_DIR / 'data' / 'media'
+MEDIA_ROOT  = BASE_DIR / 'data' / 'media'
 
-# PDF files location
-PDF_ROOT        = ROOT_DIR / 'data' / 'pdfs'
-PDF_THUMBS_ROOT = ROOT_DIR / 'data' / 'pdf_thumbs'
+# PDF files location — must match volume mounts in podman-compose.yml
+PDF_DIR        = BASE_DIR / 'data' / 'pdfs'
+PDF_ROOT       = BASE_DIR / 'data' / 'pdfs'
+PDF_THUMBS_ROOT = BASE_DIR / 'data' / 'pdf_thumbs'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
